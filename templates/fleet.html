@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Автопарк - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Наш Автопарк</h2>
+        <p>Оберіть ідеальне авто для вашої подорожі</p>
+    </div>
+
+    <!-- Filter Component -->
+    <div style="margin-bottom: 40px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+        <a href="{{ url_for('cars', class='Всі') }}"
+            class="{{ 'btn-primary' if not current_filter or current_filter == 'Всі' else 'btn-outline' }}">Всі</a>
+        <a href="{{ url_for('cars', class='Economy') }}"
+            class="{{ 'btn-primary' if current_filter == 'Economy' else 'btn-outline' }}">Економ</a>
+        <a href="{{ url_for('cars', class='Business') }}"
+            class="{{ 'btn-primary' if current_filter == 'Business' else 'btn-outline' }}">Бізнес</a>
+        <a href="{{ url_for('cars', class='SUV') }}"
+            class="{{ 'btn-primary' if current_filter == 'SUV' else 'btn-outline' }}">Позашляховики</a>
+        <a href="{{ url_for('cars', class='Premium') }}"
+            class="{{ 'btn-primary' if current_filter == 'Premium' else 'btn-outline' }}">Преміум</a>
+    </div>
+
+    <div class="car-grid">
+        {% for car in cars %}
+        <div class="car-card" style="position: relative;">
+            {% if car.status != 'Available' or car.is_booked_now %}
+            <div
+                style="position: absolute; top: 10px; right: 10px; background: #f44336; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; z-index: 2;">
+                {{ 'Заброньовано' if (car.status == 'Booked' or car.is_booked_now) else car.status }}
+            </div>
+            {% endif %}
+
+            <img src="{{ car.image_url }}" alt="{{ car.brand }} {{ car.model }}" class="car-image"
+                style="{{ 'filter: grayscale(100%);' if (car.status != 'Available' or car.is_booked_now) else '' }}">
+            <div class="car-info">
+                <div class="car-title">
+                    <h3>{{ car.brand }} {{ car.model }}</h3>
+                    <span class="price">${{ car.price_per_day }}/день</span>
+                </div>
+                <!-- Show Class -->
+                <div style="margin-bottom: 10px; color: var(--primary-color); font-size: 0.9rem;">
+                    {{ car.car_class }}
+                </div>
+
+                <div class="car-specs">
+                    <span><i class="fas fa-gas-pump"></i> {{ car.fuel_type }}</span>
+                    <span><i class="fas fa-cog"></i> {{ car.transmission }}</span>
+                    <span><i class="fas fa-user"></i> {{ car.seats }}</span>
+                </div>
+
+                {% if car.status == 'Available' and not car.is_booked_now %}
+                <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn-outline btn-block">Детальніше</a>
+                {% else %}
+                <button class="btn-outline btn-block" disabled
+                    style="opacity: 0.5; cursor: not-allowed;">Недоступне</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

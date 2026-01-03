@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Керування Автопарком - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Керування Автопарком</h2>
+        <p>Адмін панель</p>
+    </div>
+
+    <div style="max-width: 1000px; margin: 0 auto;">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div
+            style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background: {{ '#4CAF50' if category == 'success' else '#f44336' }}; color: white; text-align: center;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div style="text-align: right; margin-bottom: 20px;">
+            <a href="{{ url_for('add_car') }}" class="btn-primary"><i class="fas fa-plus"></i> Додати Авто</a>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table
+                style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                        <th style="padding: 15px;">ID</th>
+                        <th style="padding: 15px;">Бренд/Модель</th>
+                        <th style="padding: 15px;">Клас</th>
+                        <th style="padding: 15px;">Статус</th>
+                        <th style="padding: 15px;">Рік</th>
+                        <th style="padding: 15px;">Ціна</th>
+                        <th style="padding: 15px;">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for car in cars %}
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding: 15px;">#{{ car.id }}</td>
+                        <td style="padding: 15px;">{{ car.brand }} {{ car.model }}</td>
+                        <td style="padding: 15px;">{{ car.car_class }}</td>
+                        <td style="padding: 15px;">
+                            <span style="color: {{ '#4CAF50' if car.status == 'Available' else '#f44336' }};">
+                                {{ car.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 15px;">{{ car.year }}</td>
+                        <td style="padding: 15px;">${{ car.price_per_day }}</td>
+                        <td style="padding: 15px;">
+                            <a href="{{ url_for('edit_car', car_id=car.id) }}"
+                                style="color: var(--primary-color); margin-right: 15px;"><i class="fas fa-edit"></i>
+                                Ред.</a>
+                            {% if current_user.role == 'admin' %}
+                            <a href="{{ url_for('delete_car', car_id=car.id) }}"
+                                onclick="return confirm('Ви впевнені?')" style="color: #f44336;"><i
+                                    class="fas fa-trash"></i> Вид.</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

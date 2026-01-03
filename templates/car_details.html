@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ car.brand }} {{ car.model }} - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('cars') }}" style="color: var(--primary-color);"><i class="fas fa-arrow-left"></i> Назад до
+            каталогу</a>
+    </div>
+
+    <div class="details-container">
+        <div class="car-gallery">
+            <img src="{{ car.image_url }}" alt="{{ car.brand }} {{ car.model }}">
+        </div>
+
+        <div class="car-specs-full">
+            <h1 style="font-size: 3rem; margin-bottom: 10px;">{{ car.brand }} {{ car.model }}</h1>
+            <p style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 20px;">${{ car.price_per_day }} /
+                добу</p>
+
+            <p style="color: var(--text-muted); margin-bottom: 30px;">
+                {{ car.description }}
+                Ідеальний вибір для тих, хто цінує комфорт та стиль. Автомобіль проходить повну перевірку перед кожною
+                орендою.
+            </p>
+
+            <h3>Характеристики</h3>
+            <div class="spec-grid">
+                <div class="spec-item">
+                    <div class="spec-label">Рік випуску</div>
+                    <div class="spec-value">{{ car.year }}</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Двигун/Паливо</div>
+                    <div class="spec-value">{{ car.fuel_type }}</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Коробка</div>
+                    <div class="spec-value">{{ car.transmission }}</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Місць</div>
+                    <div class="spec-value">{{ car.seats }}</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Застава</div>
+                    <div class="spec-value">$500</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Мін. стаж</div>
+                    <div class="spec-value">2 роки</div>
+                </div>
+            </div>
+
+            <a href="{{ url_for('booking', car_id=car.id) }}" class="btn-primary btn-block"
+                style="font-size: 1.2rem; padding: 15px;">Забронювати зараз</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

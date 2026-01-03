@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Умови та Правила - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Умови та Правила</h2>
+    </div>
+
+    <div
+        style="max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 40px; border-radius: 15px; border: 1px solid var(--glass-border);">
+        <h3 style="color: var(--primary-color); margin-bottom: 15px;">1. Вимоги до водія</h3>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+            Мінімальний вік водія становить 21 рік. Стаж водіння повинен бути не менше 2 років. Для автомобілів
+            преміум-класу мінімальний вік - 25 років, стаж - 5 років.
+        </p>
+
+        <h3 style="color: var(--primary-color); margin-bottom: 15px;">2. Необхідні документи</h3>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+            - Паспорт громадянина України або закордонний паспорт.<br>
+            - Дійсне водійське посвідчення.<br>
+            - Ідентифікаційний код (для податкових резидентів).
+        </p>
+
+        <h3 style="color: var(--primary-color); margin-bottom: 15px;">3. Оплата та Застава</h3>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+            Оплата здійснюється за весь період оренди при отриманні авто. Застава (депозит) блокується на кредитній
+            карті або вноситься готівкою і повертається після завершення оренди без пошкоджень авто.
+        </p>
+
+        <h3 style="color: var(--primary-color); margin-bottom: 15px;">4. Політика використання</h3>
+        <p style="color: var(--text-muted);">
+            Добовий ліміт пробігу - 300 км (якщо не вказано інше). Перевищення ліміту оплачується додатково. Виїзд за
+            кордон можливий лише за попереднім узгодженням.
+        </p>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Головна - LuxDrive{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<header class="hero">
+    <h1>Оренда Преміум Авто<br><span>Без Обмежень</span></h1>
+    <p>Відкрийте для себе свободу пересування з нашим ексклюзивним автопарком. Прозорі умови, ідеальний стан авто та
+        підтримка 24/7.</p>
+
+    <div class="search-form">
+        <div class="form-group">
+            <label>Місце отримання</label>
+            <select>
+                <option>Київ, Центр</option>
+                <option>Аеропорт Бориспіль</option>
+                <option>Аеропорт Жуляни</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Дата початку</label>
+            <input type="date">
+        </div>
+        <div class="form-group">
+            <label>Дата завершення</label>
+            <input type="date">
+        </div>
+        <div class="form-group" style="justify-content: flex-end;">
+            <button class="btn-primary" style="margin-top: 20px; width: 100%;">Пошук</button>
+        </div>
+    </div>
+</header>
+
+<!-- How it works -->
+<section>
+    <div class="section-title">
+        <h2>Як це працює</h2>
+        <p>3 прості кроки до вашої поїздки</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fas fa-car feature-icon"></i>
+            <h3>Оберіть авто</h3>
+            <p>Перегляньте наш каталог та оберіть ідеальне авто для ваших потреб.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-calendar-check feature-icon"></i>
+            <h3>Забронюйте</h3>
+            <p>Швидке оформлення онлайн без зайвих паперів та черг.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-key feature-icon"></i>
+            <h3>Поїхали</h3>
+            <p>Отримайте ключі у зручному місці та насолоджуйтесь дорогою.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Cars -->
+<section style="background-color: #121212;">
+    <div class="section-title">
+        <h2>Популярні Авто</h2>
+        <p>Найкращий вибір наших клієнтів</p>
+    </div>
+
+    <div class="car-grid">
+        {% for car in cars %}
+        <div class="car-card">
+            <img src="{{ car.image_url }}" alt="{{ car.brand }} {{ car.model }}" class="car-image">
+            <div class="car-info">
+                <div class="car-title">
+                    <h3>{{ car.brand }} {{ car.model }}</h3>
+                    <span class="price">${{ car.price_per_day }}/день</span>
+                </div>
+                <div class="car-specs">
+                    <span><i class="fas fa-gas-pump"></i> {{ car.fuel_type }}</span>
+                    <span><i class="fas fa-cog"></i> {{ car.transmission }}</span>
+                    <span><i class="fas fa-user"></i> {{ car.seats }}</span>
+                </div>
+                <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn-outline btn-block">Детальніше</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 50px;">
+        <a href="{{ url_for('cars') }}" class="btn-primary">Переглянути весь автопарк</a>
+    </div>
+</section>
+
+<!-- Benefits -->
+<section>
+    <div class="section-title">
+        <h2>Чому Ми?</h2>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3>Повне Страхування</h3>
+            <p>Всі автомобілі застраховані КАСКО та ОСЦПВ.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-headset"></i></div>
+            <h3>24/7 Підтримка</h3>
+            <p>Ми завжди на зв'язку, щоб допомогти вам у будь-якій ситуації.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-wallet"></i></div>
+            <h3>Без Прихованих Платежів</h3>
+            <p>Чесна ціна, яку ви бачите при бронюванні.</p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Особистий Кабінет - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Особистий Кабінет</h2>
+        <p>Керуйте своїми бронюваннями</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div
+        style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background: {{ '#4CAF50' if category == 'success' else '#f44336' }}; color: white; text-align: center;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+        <!-- Sidebar -->
+        <div
+            style="flex: 1; min-width: 250px; max-width: 300px; background: var(--card-bg); padding: 30px; border-radius: 15px; height: fit-content; border: 1px solid var(--glass-border);">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div
+                    style="width: 100px; height: 100px; background: #333; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--primary-color);">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3>{{ current_user.username }}</h3>
+                <p style="color: var(--text-muted);">{{ current_user.email }}</p>
+                <div
+                    style="margin-top: 10px; background: rgba(212, 175, 55, 0.2); color: var(--primary-color); padding: 5px 10px; border-radius: 20px; display: inline-block; font-size: 0.8rem; text-transform: uppercase;">
+                    {{ current_user.role }}
+                </div>
+            </div>
+
+            <ul style="border-top: 1px solid #333; padding-top: 20px;">
+                <li style="padding: 10px; cursor: pointer; color: var(--primary-color); font-weight: bold;">Історія
+                    бронювань</li>
+                <li style="padding: 10px; cursor: pointer; color: var(--text-muted);">Налаштування профілю</li>
+                {% if current_user.role in ['admin', 'manager'] %}
+                <li style="padding: 10px; cursor: pointer; color: #ff9800;"><a
+                        href="{{ url_for('manage_cars') }}">Керування авто</a></li>
+                {% endif %}
+                <li style="padding: 10px; cursor: pointer; color: var(--text-muted);"><a
+                        href="{{ url_for('logout') }}">Вихід</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content (History) -->
+        <div
+            style="flex: 3; min-width: 400px; background: var(--card-bg); padding: 30px; border-radius: 15px; border: 1px solid var(--glass-border);">
+            <h3 style="margin-bottom: 30px;">Мої Бронювання</h3>
+
+            {% if bookings %}
+            {% for booking in bookings %}
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 10px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h4 style="margin-bottom: 5px;">{{ booking.car.brand }} {{ booking.car.model }} ({{ booking.car.year
+                        }})</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        {{ booking.start_date.strftime('%d.%m.%Y') }} - {{ booking.end_date.strftime('%d.%m.%Y') }}
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <p
+                        style="color: {{ '#4CAF50' if booking.status == 'Confirmed' else '#ff9800' }}; font-weight: bold; margin-bottom: 5px;">
+                        {{ booking.status }}
+                    </p>
+                    <p style="font-weight: bold;">${{ booking.total_price }}</p>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="text-align: center; color: var(--text-muted);">У вас ще немає бронювань.</p>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{{ url_for('cars') }}" class="btn-primary">Знайти авто</a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Бронювання - {{ car.brand }} {{ car.model }}{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Оформлення Бронювання</h2>
+        <p>Крок до вашої поїздки</p>
+    </div>
+
+    <div class="booking-container">
+        <!-- Summary -->
+        <div
+            style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid var(--glass-border);">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <img src="{{ car.image_url }}"
+                    style="width: 100px; height: 70px; object-fit: cover; border-radius: 5px;">
+                <div>
+                    <h4>{{ car.brand }} {{ car.model }}</h4>
+                    <p style="color: var(--primary-color);">${{ car.price_per_day }} / день</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST">
+            <h3 style="margin-bottom: 20px;">Персональні дані</h3>
+            <div class="form-row">
+                <label>Повне Ім'я</label>
+                <input type="text" name="name" required placeholder="Іван Іваненко" minlength="3">
+            </div>
+            <div class="form-row">
+                <label>Телефон</label>
+                <input type="tel" name="phone" required placeholder="+380 99 123 45 67" pattern="\+?[\d\s-]{10,15}"
+                    title="Format: +380991234567 or similar">
+            </div>
+
+            <h3 style="margin-bottom: 20px; margin-top: 30px;">Деталі оренди</h3>
+            <div class="form-row" style="display: flex; gap: 20px;">
+                <div style="flex:1;">
+                    <label>Дата початку</label>
+                    <input type="date" name="start_date" id="start_date" required min="{{ today }}">
+                </div>
+                <div style="flex:1;">
+                    <label>Дата завершення</label>
+                    <input type="date" name="end_date" id="end_date" required>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 20px; margin-top: 30px;">Додаткові опції</h3>
+            <div class="form-row">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" style="width: auto;"> Дитяче крісло (+$5/день)
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
+                    <input type="checkbox" style="width: auto;"> GPS Навігатор (+$3/день)
+                </label>
+            </div>
+
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #333;">
+                <div
+                    style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;">
+                    <span>Всього до сплати (орієнтовно):</span>
+                    <span id="total-price" style="color: var(--primary-color);">$0</span>
+                </div>
+                <button type="submit" class="btn-primary btn-block">Підтвердити Бронювання</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script>
+    // Simple JS to calculate price preview
+    const pricePerDay = {{ car.price_per_day }};
+    const startInput = document.getElementById('start_date');
+    const endInput = document.getElementById('end_date');
+    const totalSpan = document.getElementById('total-price');
+
+    function updatePrice() {
+        if (startInput.value && endInput.value) {
+            const start = new Date(startInput.value);
+            const end = new Date(endInput.value);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 0) {
+                totalSpan.innerText = '$' + (diffDays * pricePerDay);
+            } else {
+                totalSpan.innerText = '$' + pricePerDay; // Minimum 1 day
+            }
+        }
+    }
+
+    startInput.addEventListener('change', updatePrice);
+    endInput.addEventListener('change', updatePrice);
+</script>
+{% endblock %}

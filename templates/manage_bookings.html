@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Керування Замовленнями - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Керування Замовленнями</h2>
+        <p>Менеджер панель</p>
+    </div>
+
+    <div style="max-width: 1200px; margin: 0 auto;">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div
+            style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background: {{ '#4CAF50' if category == 'success' else '#f44336' }}; color: white; text-align: center;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Filter Status (Optional) -->
+        <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <a href="{{ url_for('manage_bookings') }}" class="btn-outline" style="padding: 5px 15px;">Всі</a>
+            <a href="{{ url_for('manage_bookings', status='New') }}" class="btn-outline"
+                style="padding: 5px 15px;">Нові</a>
+            <a href="{{ url_for('manage_bookings', status='Confirmed') }}" class="btn-outline"
+                style="padding: 5px 15px;">Підтверджені</a>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table
+                style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                        <th style="padding: 15px;">ID</th>
+                        <th style="padding: 15px;">Клієнт</th>
+                        <th style="padding: 15px;">Авто</th>
+                        <th style="padding: 15px;">Дати</th>
+                        <th style="padding: 15px;">Сума</th>
+                        <th style="padding: 15px;">Статус</th>
+                        <th style="padding: 15px;">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding: 15px;">#{{ booking.id }}</td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: bold;">{{ booking.customer_name }}</div>
+                            <div style="font-size: 0.9em; color: var(--text-muted);">{{ booking.customer_phone }}</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            {{ booking.car.brand }} {{ booking.car.model }}
+                            <div style="font-size: 0.8em; color: var(--text-muted);">{{ booking.car.car_class }}</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            {{ booking.start_date }} <br>
+                            <i class="fas fa-arrow-down" style="font-size:0.8em; margin: 2px 0;"></i> <br>
+                            {{ booking.end_date }}
+                        </td>
+                        <td style="padding: 15px;">${{ booking.total_price }}</td>
+                        <td style="padding: 15px;">
+                            <span style="
+                                padding: 5px 10px; border-radius: 5px; font-weight: bold;
+                                background: {{ '#FF9800' if booking.status == 'New' else ('#4CAF50' if booking.status == 'Confirmed' else ('#2196F3' if booking.status == 'Completed' else '#f44336')) }};
+                                color: white;
+                            ">
+                                {{ booking.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 15px;">
+                            {% if booking.status == 'New' %}
+                            <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='confirm') }}"
+                                class="btn-primary"
+                                style="padding: 5px 10px; font-size: 0.8em; margin-bottom: 5px; display:inline-block;">Підтвердити</a>
+                            <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='cancel') }}"
+                                style="color: #f44336; font-size: 0.9em; margin-left:10px;">Скасувати</a>
+                            {% elif booking.status == 'Confirmed' %}
+                            <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='complete') }}"
+                                style="color: #2196F3; margin-right: 10px;">Завершити</a>
+                            <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='cancel') }}"
+                                style="color: #f44336;">Скасувати</a>
+                            {% else %}
+                            <span style="color: var(--text-muted);">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">Замовлень
+                            не знайдено.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Редагувати' if car else 'Додати' }} Авто - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="auth-container" style="max-width: 800px;">
+        <div class="section-title">
+            <h2>{{ 'Редагувати' if car else 'Додати' }} Авто</h2>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div style="display: flex; gap: 20px;">
+                <div class="form-row" style="flex:1;">
+                    <label>Бренд</label>
+                    <input type="text" name="brand" value="{{ car.brand if car else '' }}" required>
+                </div>
+                <div class="form-row" style="flex:1;">
+                    <label>Модель</label>
+                    <input type="text" name="model" value="{{ car.model if car else '' }}" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div class="form-row" style="flex:1;">
+                    <label>Рік</label>
+                    <input type="number" name="year" value="{{ car.year if car else '' }}" required>
+                </div>
+                <div class="form-row" style="flex:1;">
+                    <label>Ціна за добу</label>
+                    <input type="number" name="price" value="{{ car.price_per_day if car else '' }}" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div class="form-row" style="flex:1;">
+                    <label>Коробка</label>
+                    <select name="transmission">
+                        <option value="Automatic" {{ 'selected' if car and car.transmission=='Automatic' else '' }}>
+                            Automatic</option>
+                        <option value="Manual" {{ 'selected' if car and car.transmission=='Manual' else '' }}>Manual
+                        </option>
+                    </select>
+                </div>
+                <div class="form-row" style="flex:1;">
+                    <label>Паливо</label>
+                    <select name="fuel">
+                        <option value="Petrol" {{ 'selected' if car and car.fuel_type=='Petrol' else '' }}>Petrol
+                        </option>
+                        <option value="Diesel" {{ 'selected' if car and car.fuel_type=='Diesel' else '' }}>Diesel
+                        </option>
+                        <option value="Electric" {{ 'selected' if car and car.fuel_type=='Electric' else '' }}>Electric
+                        </option>
+                        <option value="Hybrid" {{ 'selected' if car and car.fuel_type=='Hybrid' else '' }}>Hybrid
+                        </option>
+                    </select>
+                </div>
+                <div class="form-row" style="flex:1;">
+                    <label>Міць</label>
+                    <input type="number" name="seats" value="{{ car.seats if car else 5 }}" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div class="form-row" style="flex:1;">
+                    <label>Клас Авто</label>
+                    <select name="car_class">
+                        <option value="Economy" {{ 'selected' if car and car.car_class=='Economy' else '' }}>Economy
+                        </option>
+                        <option value="Business" {{ 'selected' if car and car.car_class=='Business' else '' }}>Business
+                        </option>
+                        <option value="Premium" {{ 'selected' if car and car.car_class=='Premium' else '' }}>Premium
+                        </option>
+                        <option value="SUV" {{ 'selected' if car and car.car_class=='SUV' else '' }}>SUV (Позашляховик)
+                        </option>
+                    </select>
+                </div>
+                <div class="form-row" style="flex:1;">
+                    <label>Статус</label>
+                    <select name="status">
+                        <option value="Available" {{ 'selected' if car and car.status=='Available' else '' }}>Available
+                        </option>
+                        <option value="Booked" {{ 'selected' if car and car.status=='Booked' else '' }}>Booked</option>
+                        <option value="Maintenance" {{ 'selected' if car and car.status=='Maintenance' else '' }}>
+                            Maintenance</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label>Зображення авто</label>
+
+                <!-- Drag & Drop Zone -->
+                <div class="drop-zone" id="drop-zone">
+                    <p>📸 Перетягніть фото сюди або клікніть для вибору</p>
+                    <input type="file" name="image_file" id="image_file" accept="image/*">
+                    <img id="preview" class="preview-image {{ 'active' if car and car.image_url else '' }}"
+                        src="{{ car.image_url if car else '#' }}" alt="Car Preview">
+                </div>
+
+                <div class="or-divider">АБО вкажіть URL</div>
+
+                <input type="text" name="image_url" id="image_url" value="{{ car.image_url if car else '' }}"
+                    placeholder="https://example.com/image.jpg">
+            </div>
+
+            <script>
+                const dropZone = document.getElementById('drop-zone');
+                const fileInput = document.getElementById('image_file');
+                const preview = document.getElementById('preview');
+                const urlInput = document.getElementById('image_url');
+
+                // Drag & Drop events
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('dragover');
+                });
+
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('dragover');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('dragover');
+
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        updatePreview(e.dataTransfer.files[0]);
+                    }
+                });
+
+                fileInput.addEventListener('change', () => {
+                    if (fileInput.files.length) {
+                        updatePreview(fileInput.files[0]);
+                    }
+                });
+
+                urlInput.addEventListener('input', () => {
+                    if (urlInput.value && !fileInput.files.length) {
+                        preview.src = urlInput.value;
+                        preview.classList.add('active');
+                    }
+                });
+
+                function updatePreview(file) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => {
+                        preview.src = reader.result;
+                        preview.classList.add('active');
+                    };
+                }
+            </script>
+
+            <div class="form-row">
+                <label>Опис</label>
+                <textarea name="description" rows="4"
+                    style="background:#0d0d0d; color:white; border:1px solid #333; width:100%; padding:10px;">{{ car.description if car else '' }}</textarea>
+            </div>
+
+            <button type="submit" class="btn-primary btn-block">Зберегти</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

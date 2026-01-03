@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Реєстрація - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="auth-container">
+        <div class="section-title">
+            <h2>Реєстрація</h2>
+            <p>Створіть новий аккаунт</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div
+            style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background: {{ '#4CAF50' if category == 'success' else '#f44336' }}; color: white; text-align: center;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-row">
+                <label>Ім'я користувача</label>
+                <input type="text" name="username" required placeholder="Ivan">
+            </div>
+            <div class="form-row">
+                <label>Email</label>
+                <input type="email" name="email" required placeholder="ivan@gmail.com">
+            </div>
+            <div class="form-row">
+                <label>Пароль</label>
+                <input type="password" name="password" required placeholder="********">
+            </div>
+            <button type="submit" class="btn-primary btn-block">Зареєструватись</button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px; color: var(--text-muted);">
+            Вже маєте аккаунт? <a href="{{ url_for('login') }}" style="color: var(--primary-color);">Увійти</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

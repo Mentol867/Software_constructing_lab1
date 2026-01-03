@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Успішно - LuxDrive{% endblock %}
+
+{% block content %}
+<section
+    style="text-align: center; height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <i class="fas fa-check-circle" style="font-size: 5rem; color: var(--primary-color); margin-bottom: 30px;"></i>
+    <h1>Бронювання Успішне!</h1>
+    <p style="color: var(--text-muted); max-width: 500px; margin: 20px auto;">Ваша заявка прийнята. Наш менеджер
+        зв'яжеться з вами найближчим часом для підтвердження деталей.</p>
+    <a href="{{ url_for('index') }}" class="btn-primary">На Головну</a>
+</section>
+{% endblock %}
