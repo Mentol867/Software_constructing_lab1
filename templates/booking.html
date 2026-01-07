@@ -10,6 +10,17 @@
     </div>
 
     <div class="booking-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div
+            style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background: {{ '#4CAF50' if category == 'success' else '#f44336' }}; color: white; text-align: center;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
         <!-- Summary -->
         <div
             style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid var(--glass-border);">
@@ -67,6 +78,9 @@
             </div>
         </form>
     </div>
+
+
+
 </section>
 
 <script>

@@ -72,8 +72,49 @@
                         {{ booking.status }}
                     </p>
                     <p style="font-weight: bold;">${{ booking.total_price }}</p>
+
+                    {% if booking.status == 'Completed' %}
+                    {% if not booking.review %}
+                    <button
+                        onclick="document.getElementById('review-form-{{ booking.id }}').style.display = document.getElementById('review-form-{{ booking.id }}').style.display === 'none' ? 'block' : 'none'"
+                        class="btn-primary" style="padding: 5px 10px; font-size: 0.8em; margin-top: 5px;">
+                        Залишити відгук
+                    </button>
+                    {% else %}
+                    <p style="font-size: 0.8em; color: var(--primary-color); margin-top: 5px;">Відгук залишено</p>
+                    {% endif %}
+                    {% endif %}
                 </div>
             </div>
+
+            <!-- Hidden Review Form -->
+            {% if booking.status == 'Completed' and not booking.review %}
+            <div id="review-form-{{ booking.id }}"
+                style="display: none; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 1px solid var(--glass-border);">
+                <form action="{{ url_for('add_review', booking_id=booking.id) }}" method="POST">
+                    <h5 style="margin-bottom: 10px;">Ваш відгук про поїздку</h5>
+                    <div style="margin-bottom: 10px;">
+                        <label style="display:block; margin-bottom:5px;">Оцінка (1-10)</label>
+                        <select name="rating"
+                            style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;">
+                            {% for i in range(1, 11) %}
+                            <option value="{{ i }}" {{ 'selected' if i==10 else '' }}>{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="display:block; margin-bottom:5px;">Коментар</label>
+                        <textarea name="comment" rows="3"
+                            style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;"
+                            placeholder="Як пройшла ваша поїздка?"></textarea>
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn-primary"
+                            style="padding: 5px 15px; font-size: 0.9em;">Надіслати</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
             {% endfor %}
             {% else %}
             <p style="text-align: center; color: var(--text-muted);">У вас ще немає бронювань.</p>

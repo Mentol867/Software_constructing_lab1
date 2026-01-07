@@ -58,4 +58,42 @@
         </div>
     </div>
 </section>
+
+<!-- Reviews Section (Moved here) -->
+<section>
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--primary-color); padding-bottom: 10px;">
+            Відгуки клієнтів
+            {% if reviews %}
+            <span style="float: right; font-size: 0.8em; color: var(--primary-color);">
+                <i class="fas fa-star"></i> {{ avg_rating }}/10 ({{ reviews|length }} відгуків)
+            </span>
+            {% endif %}
+        </h3>
+
+        {% if reviews %}
+        {% for review in reviews %}
+        <div
+            style="background: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--glass-border);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <div style="font-weight: bold;">
+                    <i class="fas fa-user-circle" style="margin-right: 5px;"></i> {{ review.user.username }}
+                </div>
+                <div style="color: var(--primary-color);">
+                    <i class="fas fa-star"></i> {{ review.rating }}/10
+                </div>
+            </div>
+            <p style="color: var(--text-muted); font-style: italic;">"{{ review.comment }}"</p>
+            <div style="text-align: right; margin-top: 10px; font-size: 0.8em; color: #666;">
+                {{ review.created_at.strftime('%d.%m.%Y') }}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p style="text-align: center; color: var(--text-muted);">
+            Ще немає відгуків для цього авто. Будьте першим, хто орендує та поділиться враженнями!
+        </p>
+        {% endif %}
+    </div>
+</section>
 {% endblock %}

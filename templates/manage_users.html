@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Керування Користувачами - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Керування Користувачами</h2>
+        <p>Адмін панель</p>
+    </div>
+
+    <div style="max-width: 1200px; margin: 0 auto;">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div
+            style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background: {{ '#4CAF50' if category == 'success' else '#f44336' }}; color: white; text-align: center;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div style="overflow-x: auto;">
+            <table
+                style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                        <th style="padding: 15px;">ID</th>
+                        <th style="padding: 15px;">Користувач</th>
+                        <th style="padding: 15px;">Email</th>
+                        <th style="padding: 15px;">Роль</th>
+                        <th style="padding: 15px;">Статус</th>
+                        <th style="padding: 15px;">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding: 15px;">#{{ user.id }}</td>
+                        <td style="padding: 15px; font-weight: bold;">{{ user.username }}</td>
+                        <td style="padding: 15px;">{{ user.email }}</td>
+                        <td style="padding: 15px;">
+                            <form action="{{ url_for('update_user_role', user_id=user.id) }}" method="POST"
+                                style="display: flex; gap: 10px; align-items: center;">
+                                <select name="role"
+                                    style="padding: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); border-radius: 4px;"
+                                    {{ 'disabled' if user.id==current_user.id }}>
+                                    <option value="user" {{ 'selected' if user.role=='user' }}>User</option>
+                                    <option value="manager" {{ 'selected' if user.role=='manager' }}>Manager</option>
+                                    <option value="admin" {{ 'selected' if user.role=='admin' }}>Admin</option>
+                                </select>
+                                {% if user.id != current_user.id %}
+                                <button type="submit" class="btn-outline" style="padding: 5px 10px; font-size: 0.8em;">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                        <td style="padding: 15px;">
+                            {% if user.is_blocked %}
+                            <span style="color: #f44336; font-weight: bold;">Заблокований</span>
+                            {% else %}
+                            <span style="color: #4CAF50;">Активний</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px;">
+                            {% if user.id != current_user.id %}
+                            {% if user.is_blocked %}
+                            <a href="{{ url_for('toggle_user_block', user_id=user.id, action='unblock') }}"
+                                class="btn-primary"
+                                style="padding: 5px 10px; font-size: 0.8em; background-color: #4CAF50;">Розблокувати</a>
+                            {% else %}
+                            <a href="{{ url_for('toggle_user_block', user_id=user.id, action='block') }}"
+                                class="btn-primary"
+                                style="padding: 5px 10px; font-size: 0.8em; background-color: #f44336;">Заблокувати</a>
+                            {% endif %}
+                            {% else %}
+                            <span style="color: var(--text-muted); font-size: 0.8em;">(Це ви)</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Обслуговування - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Журнал обслуговування</h2>
+        <p>Записи про технічне обслуговування автомобілів</p>
+    </div>
+
+    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+
+        <!-- Filters and Actions -->
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <form method="GET" style="display: flex; gap: 10px; align-items: center;">
+                    <label style="color: #aaa;">Фільтр по авто:</label>
+                    <select name="car_id" onchange="this.form.submit()"
+                        style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; min-width: 200px;">
+                        <option value="">Всі автомобілі</option>
+                        {% for car in cars %}
+                        <option value="{{ car.id }}" {{ 'selected' if selected_car and selected_car.id==car.id else ''
+                            }}>
+                            {{ car.brand }} {{ car.model }} ({{ car.year }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+            <a href="{{ url_for('add_maintenance') }}" class="btn-primary" style="padding: 12px 25px;">
+                + Додати запис
+            </a>
+        </div>
+
+        {% if selected_car %}
+        <!-- Car Summary -->
+        <div style="background: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+            <h3 style="margin-bottom: 15px;">{{ selected_car.brand }} {{ selected_car.model }} ({{ selected_car.year }})
+            </h3>
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                <div>
+                    <span style="color: #aaa;">Всього записів:</span>
+                    <strong style="color: var(--gold); font-size: 1.2em; margin-left: 10px;">{{ records|length
+                        }}</strong>
+                </div>
+                <div>
+                    <span style="color: #aaa;">Загальні витрати:</span>
+                    <strong style="color: #f44336; font-size: 1.2em; margin-left: 10px;">
+                        {{ records|sum(attribute='cost')|round(2) }} грн
+                    </strong>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Records Table -->
+        <div style="overflow-x: auto;">
+            <table
+                style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                        <th style="padding: 15px;">Дата</th>
+                        <th style="padding: 15px;">Автомобіль</th>
+                        <th style="padding: 15px;">Опис</th>
+                        <th style="padding: 15px;">Вартість</th>
+                        <th style="padding: 15px;">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding: 15px;">{{ record.date.strftime('%d.%m.%Y') }}</td>
+                        <td style="padding: 15px;">
+                            <strong>{{ record.car.brand }} {{ record.car.model }}</strong>
+                            <br><small style="color: #aaa;">{{ record.car.year }} рік</small>
+                        </td>
+                        <td style="padding: 15px;">{{ record.description }}</td>
+                        <td style="padding: 15px; font-weight: bold; color: #f44336;">
+                            {{ record.cost }} грн
+                        </td>
+                        <td style="padding: 15px;">
+                            {% if current_user.role == 'admin' %}
+                            <a href="{{ url_for('delete_maintenance', record_id=record.id) }}"
+                                onclick="return confirm('Видалити цей запис?')"
+                                style="color: #f44336; text-decoration: none;">
+                                🗑️ Видалити
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 40px; text-align: center; color: #aaa;">
+                            Записи про обслуговування відсутні
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Link to Statistics -->
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="{{ url_for('statistics') }}" class="btn-secondary" style="padding: 12px 25px;">
+                📊 Переглянути статистику обслуговування
+            </a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

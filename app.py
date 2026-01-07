@@ -2,103 +2,53 @@ from flask import Flask, render_template, request, redirect, url_for, flash, abo
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 app = Flask(__name__)
 
-# Konfiguratsia bazy danykh
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:137948625awD@localhost:5432/flask_db?client_encoding=utf8'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'super_secret_key_for_car_rental' # Dlya sessiy ta flesh povidomlen
+app.secret_key = 'super_secret_key_for_car_rental' # Для сесій та flash-повідомлень
 
-db = SQLAlchemy(app)
+from models import db, User, Car, Location, Booking, Review, Maintenance
+
+db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# --- HELPERS ---
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# --- ДОПОМІЖНІ ФУНКЦІЇ ---
 
 def role_required(roles):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if not current_user.is_authenticated or current_user.role not in roles:
-                flash('Access denied. Insufficient permissions.', 'danger')
+                flash('Доступ заборонено. Недостатньо прав.', 'danger')
                 return redirect(url_for('index'))
             return f(*args, **kwargs)
         return decorated_function
     return decorator
 
-# --- MODELS ---
-
-class User(UserMixin, db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), default='user') # 'admin', 'manager', 'user'
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-class Car(db.Model):
-    __tablename__ = 'cars'
-    id = db.Column(db.Integer, primary_key=True)
-    brand = db.Column(db.String(50), nullable=False)
-    model = db.Column(db.String(50), nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    price_per_day = db.Column(db.Integer, nullable=False)
-    transmission = db.Column(db.String(20), nullable=False) # 'Automatic', 'Manual'
-    fuel_type = db.Column(db.String(20), nullable=False) # 'Petrol', 'Diesel', 'Electric'
-    seats = db.Column(db.Integer, nullable=False)
-    image_url = db.Column(db.String(200), default='https://placehold.co/600x400/1a1a1a/gold?text=Car+Image') # Placeholder
-    is_available = db.Column(db.Boolean, default=True)
-    description = db.Column(db.Text)
-    car_class = db.Column(db.String(50), default='Economy')  # Economy, Business, Premium, SUV
-    status = db.Column(db.String(20), default='Available')   # Available, Booked, Maintenance
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=True) 
-    
-    location = db.relationship('Location', backref='cars')
-
-class Location(db.Model):
-    __tablename__ = 'locations'
-    id = db.Column(db.Integer, primary_key=True)
-    city = db.Column(db.String(50), nullable=False)
-    address = db.Column(db.String(200), nullable=False)
-    phone_number = db.Column(db.String(20), nullable=False)
-    max_capacity = db.Column(db.Integer, nullable=False)
-
-    def __repr__(self):
-        return f'<Location {self.city} - {self.address}>'
-
-class Booking(db.Model):
-    __tablename__ = 'bookings'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True) 
-    car_id = db.Column(db.Integer, db.ForeignKey('cars.id'), nullable=False)
-    start_date = db.Column(db.Date, nullable=False)
-    end_date = db.Column(db.Date, nullable=False)
-    total_price = db.Column(db.Float, nullable=False)
-    customer_name = db.Column(db.String(100), nullable=False)
-    customer_phone = db.Column(db.String(20), nullable=False)
-    status = db.Column(db.String(20), default='New') # New, Confirmed, Canceled
-
-    user = db.relationship('User', backref='bookings')
-    car = db.relationship('Car', backref='bookings')
-
-# --- ROUTES ---
+# --- МАРШРУТИ (ROUTES) ---
 
 @app.route('/')
 def index():
-    popular_cars = Car.query.limit(4).all()
+    try:
+        from services.ranking_service import calculate_popular_cars
+        
+        all_cars = Car.query.all()
+        all_reviews = Review.query.all()
+        
+        popular_cars = calculate_popular_cars(all_cars, all_reviews, limit=4)
+    except Exception as e:
+        print(f"Помилка при розрахунку популярних автомобілів: {e}")
+        popular_cars = Car.query.limit(4).all()
+        
     return render_template('index.html', cars=popular_cars)
 
 @app.route('/cars')
@@ -111,12 +61,12 @@ def cars():
         
     all_cars = query.all()
     
-    # Check current availability dynamically
+    # Перевірка поточної доступності динамічно
     today = datetime.now().date()
     for car in all_cars:
         active_booking = Booking.query.filter(
             Booking.car_id == car.id,
-            Booking.status != 'Canceled',
+            Booking.status == 'Confirmed',
             Booking.start_date <= today,
             Booking.end_date >= today
         ).first()
@@ -127,73 +77,31 @@ def cars():
 @app.route('/car/<int:car_id>')
 def car_details(car_id):
     car = Car.query.get_or_404(car_id)
-    return render_template('car_details.html', car=car)
+    
+    # Отримання відгуків
+    reviews = Review.query.filter_by(car_id=car.id).order_by(Review.created_at.desc()).all()
+    avg_rating = 0
+    if reviews:
+        avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
+        
+    return render_template('car_details.html', car=car, reviews=reviews, avg_rating=avg_rating)
 
 @app.route('/booking/<int:car_id>', methods=['GET', 'POST'])
 def booking(car_id):
     car = Car.query.get_or_404(car_id)
     if request.method == 'POST':
         if not current_user.is_authenticated:
-            flash('Please log in to book a car.', 'warning')
+            flash('Ви не авторизовані, логінуйтесь.', 'warning')
             return redirect(url_for('login', next=request.url))
 
-        start_date_str = request.form['start_date']
-        end_date_str = request.form['end_date']
-        name = request.form['name']
-        phone = request.form['phone']
+        from services.booking_service import process_booking
+        success, result = process_booking(current_user.id, car, request.form)
         
-        # Phone validation (simple regex for digits and possible +)
-        import re
-        if not re.match(r'^\+?[\d\s-]{10,15}$', phone):
-             flash('Invalid phone number format.', 'danger')
+        if success:
+             return redirect(url_for('success'))
+        else:
+             flash(result, 'danger')
              return render_template('booking.html', car=car)
-        
-        try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-            
-            if start_date < datetime.now().date():
-                flash('Start date cannot be in the past.', 'danger')
-                return render_template('booking.html', car=car)
-                
-            if end_date <= start_date:
-                flash('End date must be after start date.', 'danger')
-                return render_template('booking.html', car=car)
-
-            # Check overlap
-            overlapping_bookings = Booking.query.filter(
-                Booking.car_id == car.id,
-                Booking.status != 'Canceled',
-                Booking.end_date > start_date,
-                Booking.start_date < end_date
-            ).first()
-            
-            if overlapping_bookings:
-                 flash('Car is already booked for these dates.', 'danger')
-                 return render_template('booking.html', car=car)
-
-            days = (end_date - start_date).days
-            total_price = days * car.price_per_day
-
-            new_booking = Booking(
-                car_id=car.id,
-                user_id=current_user.id,
-                start_date=start_date,
-                end_date=end_date,
-                total_price=total_price,
-                customer_name=name,
-                customer_phone=phone
-            )
-            
-            # Optionally update car status to 'Booked' if it's for NOW (this is a bit complex as bookings vary in time)
-            # For this simple app, we won't toggle the 'status' column automatically on every booking because a car can be booked for next month.
-            # The 'status' column is likely for manual overrides (Maintenance) or immediate status.
-            
-            db.session.add(new_booking)
-            db.session.commit()
-            return redirect(url_for('success'))
-        except ValueError:
-             flash('Invalid date format.', 'danger')
 
     today_str = datetime.now().strftime('%Y-%m-%d')
     return render_template('booking.html', car=car, today=today_str)
@@ -202,7 +110,7 @@ def booking(car_id):
 def success():
     return render_template('success.html')
 
-# --- AUTH ROUTES ---
+# --- МАРШРУТИ АВТОРИЗАЦІЇ ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -210,17 +118,16 @@ def login():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        user = User.query.filter_by(email=email).first()
+        from services.auth_service import authenticate_user
+        success, message, user = authenticate_user(request.form['email'], request.form['password'])
         
-        if user and user.check_password(password):
+        if success:
             login_user(user)
-            flash('Login successful!', 'success')
+            flash(message, 'success')
             next_page = request.args.get('next')
             return redirect(next_page or url_for('dashboard'))
         else:
-            flash('Invalid email or password.', 'danger')
+            flash(message, 'danger')
     
     return render_template('login.html')
 
@@ -230,25 +137,16 @@ def register():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
+        from services.auth_service import register_user
+        success, message, user = register_user(request.form)
         
-        import re
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            flash('Invalid email address.', 'danger')
-            return render_template('register.html')
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered.', 'warning')
-        else:
-            new_user = User(username=username, email=email)
-            new_user.set_password(password)
-            db.session.add(new_user)
-            db.session.commit()
-            login_user(new_user)
-            flash('Registration successful! Welcome.', 'success')
+        if success:
+            login_user(user)
+            flash(message, 'success')
             return redirect(url_for('dashboard'))
+        else:
+            flash(message, 'warning' if 'вже' in message else 'danger')
+            return render_template('register.html')
             
     return render_template('register.html')
 
@@ -256,7 +154,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
+    flash('Ви вийшли з системи.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/dashboard')
@@ -265,7 +163,21 @@ def dashboard():
     bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.start_date.desc()).all()
     return render_template('dashboard.html', bookings=bookings)
 
-# --- MANAGER / ADMIN ROUTES ---
+@app.route('/review/add/<int:booking_id>', methods=['POST'])
+@login_required
+def add_review(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    from services.review_service import create_review
+    success, message = create_review(current_user.id, booking, request.form)
+    
+    if success:
+        flash(message, 'Успіх')
+    else:
+        flash(message, 'Помилка')
+        
+    return redirect(url_for('dashboard'))
+
+# --- МАРШРУТИ ДЛЯ МЕНЕДЖЕРІВ / АДМІНІСТРАТОРІВ ---
 
 @app.route('/manage/cars')
 @login_required
@@ -275,16 +187,8 @@ def manage_cars():
     return render_template('manage_cars.html', cars=cars)
 
 app.config['UPLOAD_FOLDER'] = 'static/uploads/cars'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Ensure upload directory exists
+# Переконатися, що директорія для завантаження існує
 import os
-from werkzeug.utils import secure_filename
-
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -293,46 +197,14 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 @role_required(['admin', 'manager'])
 def add_car():
     if request.method == 'POST':
-        try:
-            brand = request.form['brand']
-            model = request.form['model']
-            year = int(request.form['year'])
-            price = int(request.form['price'])
-            transmission = request.form['transmission']
-            fuel = request.form['fuel']
-            seats = int(request.form['seats'])
-            description = request.form['description']
-            car_class = request.form['car_class']
-            status = request.form['status']
-            
-            # Handle Image Upload
-            image_url = None
-            if 'image_file' in request.files:
-                file = request.files['image_file']
-                if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    # Use timestamp to avoid name collisions
-                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    filename = f"{timestamp}_{filename}"
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    image_url = url_for('static', filename=f'uploads/cars/{filename}')
-            
-            # Fallback to URL input if no file uploaded
-            if not image_url and request.form.get('image_url'):
-                image_url = request.form['image_url']
-            
-            new_car = Car(
-                brand=brand, model=model, year=year, price_per_day=price,
-                transmission=transmission, fuel_type=fuel, seats=seats,
-                image_url=image_url, description=description,
-                car_class=car_class, status=status
-            )
-            db.session.add(new_car)
-            db.session.commit()
-            flash('Car added successfully!', 'success')
+        from services.car_service import create_car
+        success, result = create_car(request.form, request.files, app.config['UPLOAD_FOLDER'])
+        
+        if success:
+            flash('Автомобіль успішно додано!', 'Успіх')
             return redirect(url_for('manage_cars'))
-        except Exception as e:
-            flash(f'Error adding car: {str(e)}', 'danger')
+        else:
+            flash(f'Помилка додавання автомобіля: {result}', 'Помилка')
 
     return render_template('edit_car.html', car=None)
 
@@ -342,80 +214,162 @@ def add_car():
 def edit_car(car_id):
     car = Car.query.get_or_404(car_id)
     if request.method == 'POST':
-        try:
-            car.brand = request.form['brand']
-            car.model = request.form['model']
-            car.year = int(request.form['year'])
-            car.price_per_day = int(request.form['price'])
-            car.transmission = request.form['transmission']
-            car.fuel_type = request.form['fuel']
-            car.seats = int(request.form['seats'])
-            car.description = request.form['description']
-            car.car_class = request.form['car_class']
-            car.status = request.form['status']
-            
-            # Handle Image Upload
-            if 'image_file' in request.files:
-                file = request.files['image_file']
-                if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    filename = f"{timestamp}_{filename}"
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    car.image_url = url_for('static', filename=f'uploads/cars/{filename}')
-            
-            # Update image_url from text input if provided (and no file uploaded this time, or to overwrite)
-            if request.form.get('image_url') and request.form['image_url'] != car.image_url:
-                 car.image_url = request.form['image_url']
-            
-            db.session.commit()
-            flash('Car updated successfully!', 'success')
-            return redirect(url_for('manage_cars'))
-        except Exception as e:
-            flash(f'Error updating car: {str(e)}', 'danger')
+        from services.car_service import update_car
+        success, result = update_car(car, request.form, request.files, app.config['UPLOAD_FOLDER'])
+        
+        if success:
+             flash('Автомобіль успішно оновлено!', 'Успіх')
+             return redirect(url_for('manage_cars'))
+        else:
+             flash(f'Помилка оновлення автомобіля: {result}', 'Помилка')
             
     return render_template('edit_car.html', car=car)
 
 @app.route('/manage/bookings')
 @login_required
-@role_required(['admin', 'manager'])
+@role_required(['manager'])
 def manage_bookings():
     filter_status = request.args.get('status')
     if filter_status:
         bookings = Booking.query.filter_by(status=filter_status).order_by(Booking.start_date.desc()).all()
     else:
         bookings = Booking.query.order_by(Booking.start_date.desc()).all()
-    return render_template('manage_bookings.html', bookings=bookings)
+    today = datetime.now().date()
+    return render_template('manage_bookings.html', bookings=bookings, today=today)
 
 @app.route('/manage/booking/update/<int:booking_id>/<action>')
 @login_required
-@role_required(['admin', 'manager'])
+@role_required(['manager'])
 def update_booking_status(booking_id, action):
     booking = Booking.query.get_or_404(booking_id)
-    if action == 'confirm':
-        booking.status = 'Confirmed'
-        # Optional: set car status to Booked? 
-        # booking.car.status = 'Booked' # If we want to strictly lock it
-        flash(f'Booking #{booking.id} confirmed.', 'success')
-    elif action == 'cancel':
-        booking.status = 'Canceled'
-        flash(f'Booking #{booking.id} canceled.', 'warning')
-    elif action == 'complete':
-        booking.status = 'Completed'
-        flash(f'Booking #{booking.id} marked as completed.', 'success')
+    from services.booking_service import update_booking_status
+    success, message, category = update_booking_status(booking, action)
+    flash(message, category)
     
     db.session.commit()
     return redirect(url_for('manage_bookings'))
 
+@app.route('/manage/users')
+@login_required
+@role_required(['admin'])
+def manage_users():
+    users = User.query.order_by(User.id).all()
+    return render_template('manage_users.html', users=users)
+
+@app.route('/manage/user/<int:user_id>/role', methods=['POST'])
+@login_required
+@role_required(['admin'])
+def update_user_role(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.id == current_user.id:
+        flash('Ви не можете змінити власну роль.', 'warning')
+        return redirect(url_for('manage_users'))
+        
+    new_role = request.form.get('role')
+    if new_role in ['user', 'manager', 'admin']:
+        user.role = new_role
+        db.session.commit()
+        flash(f'Роль для {user.username} оновлено на {new_role}.', 'success')
+    else:
+        flash('Вибрано недійсну роль.', 'danger')
+    return redirect(url_for('manage_users'))
+
+@app.route('/manage/user/<int:user_id>/block/<action>')
+@login_required
+@role_required(['admin'])
+def toggle_user_block(user_id, action):
+    user = User.query.get_or_404(user_id)
+    if user.id == current_user.id:
+        flash('Ви не можете заблокувати самого себе.', 'warning')
+        return redirect(url_for('manage_users'))
+
+    if action == 'block':
+        user.is_blocked = True
+        flash(f'Користувача {user.username} заблоковано.', 'danger')
+    elif action == 'unblock':
+        user.is_blocked = False
+        flash(f'Користувача {user.username} розблоковано.', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('manage_users'))
+
+@app.route('/manage/statistics')
+@login_required
+@role_required(['admin'])
+def statistics():
+    from services.statistics_service import get_statistics_context
+    context = get_statistics_context(request.args)
+    return render_template('statistics.html', **context)
+
+# --- МАРШРУТИ ОБСЛУГОВУВАННЯ (MAINTENANCE) ---
+
+@app.route('/manage/maintenance')
+@login_required
+@role_required(['admin', 'manager'])
+def manage_maintenance():
+    car_id = request.args.get('car_id')
+    if car_id:
+        records = Maintenance.query.filter_by(car_id=car_id).order_by(Maintenance.date.desc()).all()
+        selected_car = Car.query.get(car_id)
+    else:
+        records = Maintenance.query.order_by(Maintenance.date.desc()).all()
+        selected_car = None
+    
+    cars = Car.query.all()
+    return render_template('manage_maintenance.html', records=records, cars=cars, selected_car=selected_car)
+
+@app.route('/manage/maintenance/add', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin', 'manager'])
+def add_maintenance():
+    if request.method == 'POST':
+        try:
+            car_id = int(request.form['car_id'])
+            date_str = request.form['date']
+            description = request.form['description']
+            cost = float(request.form['cost'])
+            
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+            record = Maintenance(
+                car_id=car_id,
+                date=date,
+                description=description,
+                cost=cost
+            )
+            db.session.add(record)
+            db.session.commit()
+            flash('Запис про обслуговування додано!', 'success')
+            return redirect(url_for('manage_maintenance', car_id=car_id))
+        except Exception as e:
+            flash(f'Помилка: {str(e)}', 'danger')
+    
+    cars = Car.query.all()
+    today = datetime.now().strftime('%Y-%m-%d')
+    return render_template('add_maintenance.html', cars=cars, today=today)
+
+@app.route('/manage/maintenance/delete/<int:record_id>')
+@login_required
+@role_required(['admin'])
+def delete_maintenance(record_id):
+    record = Maintenance.query.get_or_404(record_id)
+    car_id = record.car_id
+    db.session.delete(record)
+    db.session.commit()
+    flash('Запис видалено!', 'success')
+    return redirect(url_for('manage_maintenance', car_id=car_id))
+
 @app.route('/manage/car/delete/<int:car_id>')
 @login_required
-@role_required(['admin']) # Only Admin can delete
+@role_required(['admin']) # Тільки адміністратор може видаляти
 def delete_car(car_id):
     car = Car.query.get_or_404(car_id)
-    db.session.delete(car)
-    db.session.commit()
-    flash('Car deleted successfully!', 'success')
+    from services.car_service import delete_car
+    success, message = delete_car(car)
+    flash('Автомобіль успішно видалено!', 'success' if success else 'danger')
     return redirect(url_for('manage_cars'))
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

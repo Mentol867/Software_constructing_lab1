@@ -22,6 +22,41 @@
         {% endif %}
         {% endwith %}
 
+        <!-- Active Rentals Summary -->
+        <div
+            style="background: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid var(--primary-color);">
+            <h3 style="color: var(--primary-color); margin-bottom: 15px;"><i class="fas fa-car-side"></i> Зараз в оренді
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                {% set active_count = namespace(value=0) %}
+                {% for booking in bookings %}
+                {% if booking.status == 'Confirmed' and booking.start_date <= today and booking.end_date>= today %}
+                    {% set active_count.value = active_count.value + 1 %}
+                    <div
+                        style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                        <div style="font-weight: bold; margin-bottom: 5px; color:white;">{{ booking.car.brand }} {{
+                            booking.car.model }}</div>
+                        <div
+                            style="display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px; color: var(--text-muted);">
+                            <span><i class="fas fa-user"></i> {{ booking.customer_name }}</span>
+                            <span><i class="fas fa-phone"></i> {{ booking.customer_phone }}</span>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; font-size: 0.9em; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
+                            <span style="color: #ff9800;"><i class="fas fa-map-marker-alt"></i> {{
+                                booking.car.location.city
+                                if booking.car.location else 'Не вказано' }}</span>
+                            <span style="color:white;">{{ booking.end_date.strftime('%d.%m') }} (кінець)</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% if active_count.value == 0 %}
+                    <p style="color: var(--text-muted);">Немає активних поїздок на даний момент.</p>
+                    {% endif %}
+            </div>
+        </div>
+
         <!-- Filter Status (Optional) -->
         <div style="margin-bottom: 20px; display: flex; gap: 10px;">
             <a href="{{ url_for('manage_bookings') }}" class="btn-outline" style="padding: 5px 15px;">Всі</a>
@@ -39,6 +74,7 @@
                         <th style="padding: 15px;">ID</th>
                         <th style="padding: 15px;">Клієнт</th>
                         <th style="padding: 15px;">Авто</th>
+                        <th style="padding: 15px;">Місце</th>
                         <th style="padding: 15px;">Дати</th>
                         <th style="padding: 15px;">Сума</th>
                         <th style="padding: 15px;">Статус</th>
@@ -58,6 +94,15 @@
                             <div style="font-size: 0.8em; color: var(--text-muted);">{{ booking.car.car_class }}</div>
                         </td>
                         <td style="padding: 15px;">
+                            {% if booking.car.location %}
+                            {{ booking.car.location.city }}
+                            <div style="font-size: 0.8em; color: var(--text-muted);">{{ booking.car.location.address }}
+                            </div>
+                            {% else %}
+                            <span style="color: var(--text-muted);">Не вказано</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px;">
                             {{ booking.start_date }} <br>
                             <i class="fas fa-arrow-down" style="font-size:0.8em; margin: 2px 0;"></i> <br>
                             {{ booking.end_date }}
@@ -74,9 +119,11 @@
                         </td>
                         <td style="padding: 15px;">
                             {% if booking.status == 'New' %}
+                            {% if current_user.role != 'admin' %}
                             <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='confirm') }}"
                                 class="btn-primary"
                                 style="padding: 5px 10px; font-size: 0.8em; margin-bottom: 5px; display:inline-block;">Підтвердити</a>
+                            {% endif %}
                             <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='cancel') }}"
                                 style="color: #f44336; font-size: 0.9em; margin-left:10px;">Скасувати</a>
                             {% elif booking.status == 'Confirmed' %}

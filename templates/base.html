@@ -23,9 +23,19 @@
             <a href="{{ url_for('manage_cars') }}"
                 class="{{ 'active' if request.endpoint and 'manage/car' in request.endpoint else '' }}"
                 style="color: #ff9800;">Авто</a>
+            {% endif %}
+
+            {% if current_user.is_authenticated and current_user.role == 'manager' %}
             <a href="{{ url_for('manage_bookings') }}"
                 class="{{ 'active' if request.endpoint == 'manage_bookings' else '' }}"
                 style="color: #ff9800;">Замовлення</a>
+            {% endif %}
+
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <a href="{{ url_for('manage_users') }}" class="{{ 'active' if request.endpoint == 'manage_users' else '' }}"
+                style="color: #f44336;">Користувачі</a>
+            <a href="{{ url_for('statistics') }}" class="{{ 'active' if request.endpoint == 'statistics' else '' }}"
+                style="color: #00bcd4;">Статистика</a>
             {% endif %}
 
 

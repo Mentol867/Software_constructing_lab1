@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Статистика - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Статистика та Аналітика</h2>
+        <p>Огляд ефективності бізнесу</p>
+    </div>
+
+    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+
+        <!-- Income/Bookings Filters -->
+        <div style="margin-bottom: 30px; background: var(--card-bg); padding: 20px; border-radius: 10px;">
+            <h3 style="margin-bottom: 15px; color: var(--gold);">📊 Дохід та Бронювання</h3>
+            <form method="GET" style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px;">
+
+                <!-- Metric Filter -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.9em; color: #aaa;">Показник:</label>
+                    <select name="metric"
+                        style="padding: 10px; border-radius: 5px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; min-width: 150px;">
+                        <option value="income" {{ 'selected' if current_metric=='income' else '' }}>Дохід</option>
+                        <option value="count" {{ 'selected' if current_metric=='count' else '' }}>Кількість бронювань
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Location Filter -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.9em; color: #aaa;">Локація:</label>
+                    <select name="location_id"
+                        style="padding: 10px; border-radius: 5px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; min-width: 150px;">
+                        <option value="all">Всі локації</option>
+                        {% for loc in locations %}
+                        <option value="{{ loc.id }}" {{ 'selected' if current_loc==loc.id|string else '' }}>{{ loc.city
+                            }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Time Period Filter -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.9em; color: #aaa;">Період:</label>
+                    <select name="period"
+                        style="padding: 10px; border-radius: 5px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; min-width: 150px;">
+                        <option value="week" {{ 'selected' if current_period=='week' else '' }}>Тиждень</option>
+                        <option value="2weeks" {{ 'selected' if current_period=='2weeks' else '' }}>2 Тижні</option>
+                        <option value="month" {{ 'selected' if current_period=='month' else '' }}>Місяць</option>
+                        <option value="3months" {{ 'selected' if current_period=='3months' else '' }}>3 Місяці</option>
+                        <option value="6months" {{ 'selected' if current_period=='6months' else '' }}>Півроку</option>
+                        <option value="year" {{ 'selected' if current_period=='year' else '' }}>Рік</option>
+                    </select>
+                </div>
+
+                <!-- Car Class Filter -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.9em; color: #aaa;">Клас авто:</label>
+                    <select name="car_class"
+                        style="padding: 10px; border-radius: 5px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; min-width: 150px;">
+                        <option value="all">Всі класи</option>
+                        {% for cls in car_classes %}
+                        {% if cls %}
+                        <option value="{{ cls }}" {{ 'selected' if current_class==cls else '' }}>{{ cls }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="align-self: flex-end;">
+                    <button type="submit" class="btn-primary" style="padding: 10px 20px;">Застосувати</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Income Chart -->
+        <div style="margin-bottom: 50px;">
+            <h3 style="margin-bottom: 20px;">Графік Доходу / Бронювань</h3>
+            <div
+                style="background: white; padding: 10px; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                {% if plot_url %}
+                <img src="data:image/png;base64,{{ plot_url }}" style="width: 100%; height: auto;" alt="Income Chart">
+                {% else %}
+                <p style="color: #333;">Графік недоступний (немає даних або помилка).</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Maintenance Section -->
+        <div style="margin-bottom: 50px; background: var(--card-bg); padding: 20px; border-radius: 10px;">
+            <h3 style="margin-bottom: 15px; color: #2196F3;">🔧 Витрати на обслуговування</h3>
+
+            <form method="GET"
+                style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-bottom: 20px;">
+                <!-- Keep other filters -->
+                <input type="hidden" name="metric" value="{{ current_metric }}">
+                <input type="hidden" name="location_id" value="{{ current_loc or 'all' }}">
+                <input type="hidden" name="period" value="{{ current_period }}">
+                <input type="hidden" name="car_class" value="{{ current_class or 'all' }}">
+
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.9em; color: #aaa;">Оберіть автомобіль:</label>
+                    <select name="maintenance_car_id"
+                        style="padding: 10px; border-radius: 5px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; min-width: 250px;">
+                        <option value="all">Загальний огляд</option>
+                        {% for car in all_cars %}
+                        <option value="{{ car.id }}" {{ 'selected' if current_maintenance_car==car.id|string else '' }}>
+                            {{ car.brand }} {{ car.model }} ({{ car.year }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="align-self: flex-end;">
+                    <button type="submit" class="btn-primary" style="padding: 10px 20px; background: #2196F3;">
+                        Показати
+                    </button>
+                </div>
+            </form>
+
+            {% if selected_maintenance_car %}
+            <!-- Individual Car Maintenance Chart -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px;">
+                    Історія обслуговування: {{ selected_maintenance_car.brand }} {{ selected_maintenance_car.model }}
+                </h4>
+                <div
+                    style="background: white; padding: 10px; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                    {% if maintenance_plot_url %}
+                    <img src="data:image/png;base64,{{ maintenance_plot_url }}" style="width: 100%; height: auto;"
+                        alt="Maintenance Chart">
+                    {% else %}
+                    <p style="color: #333;">Немає записів про обслуговування для цього автомобіля.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <!-- Summary Chart -->
+            <div>
+                <h4 style="margin-bottom: 15px;">ТОП-10 авто за витратами на обслуговування</h4>
+                <div
+                    style="background: white; padding: 10px; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                    {% if maintenance_summary_url %}
+                    <img src="data:image/png;base64,{{ maintenance_summary_url }}" style="width: 100%; height: auto;"
+                        alt="Maintenance Summary">
+                    {% else %}
+                    <p style="color: #333;">Немає записів про обслуговування.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 20px; text-align: right;">
+                <a href="{{ url_for('manage_maintenance') }}" class="btn-secondary" style="padding: 10px 20px;">
+                    📝 Керувати записами обслуговування
+                </a>
+            </div>
+        </div>
+
+        <!-- Station Stats Table -->
+        <div>
+            <h3 style="margin-bottom: 20px;">Завантаженість Станцій</h3>
+            <div style="overflow-x: auto;">
+                <table
+                    style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                            <th style="padding: 15px;">Місто</th>
+                            <th style="padding: 15px;">Адреса</th>
+                            <th style="padding: 15px;">Макс. Місць</th>
+                            <th style="padding: 15px;">Всього Авто</th>
+                            <th style="padding: 15px;">В Оренді</th>
+                            <th style="padding: 15px;">Вільні Місця</th>
+                            <th style="padding: 15px;">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in location_stats %}
+                        <tr style="border-bottom: 1px solid var(--glass-border);">
+                            <td style="padding: 15px;">{{ stat.city }}</td>
+                            <td style="padding: 15px;">{{ stat.address }}</td>
+                            <td style="padding: 15px;">{{ stat.max_capacity }}</td>
+                            <td style="padding: 15px;">{{ stat.total_fleet }}</td>
+                            <td style="padding: 15px;">{{ stat.cars_on_trip }}</td>
+                            <td style="padding: 15px; font-weight: bold; font-size: 1.1em;">
+                                {{ stat.free_spots }}
+                            </td>
+                            <td style="padding: 15px;">
+                                {% set occupancy = ((stat.max_capacity - stat.free_spots) / stat.max_capacity * 100) if
+                                stat.max_capacity > 0 else 0 %}
+                                <div
+                                    style="width: 100px; height: 10px; background: #333; border-radius: 5px; overflow: hidden;">
+                                    <div
+                                        style="height: 100%; width: {{ occupancy }}%; background: {{ '#f44336' if occupancy > 90 else ('#ff9800' if occupancy > 70 else '#4CAF50') }};">
+                                    </div>
+                                </div>
+                                <div style="font-size: 0.8em; margin-top: 5px;">{{ occupancy|round(0) }}% Зайнято</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

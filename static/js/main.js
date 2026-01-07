@@ -1,4 +1,3 @@
-// Sticky Navbar
 window.addEventListener('scroll', function () {
     const nav = document.querySelector('nav');
     if (window.scrollY > 50) {
@@ -10,7 +9,6 @@ window.addEventListener('scroll', function () {
     }
 });
 
-// Smooth Scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();

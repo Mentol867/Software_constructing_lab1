@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Додати обслуговування - LuxDrive{% endblock %}
+
+{% block content %}
+<section>
+    <div class="section-title">
+        <h2>Додати запис про обслуговування</h2>
+        <p>Внесіть інформацію про технічне обслуговування автомобіля</p>
+    </div>
+
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <form method="POST" style="background: var(--card-bg); padding: 30px; border-radius: 15px;">
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Автомобіль *</label>
+                <select name="car_id" required
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; font-size: 1em;">
+                    <option value="">Оберіть автомобіль</option>
+                    {% for car in cars %}
+                    <option value="{{ car.id }}">{{ car.brand }} {{ car.model }} ({{ car.year }}) - {{ car.car_class }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Дата обслуговування *</label>
+                <input type="date" name="date" required value="{{ today }}"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; font-size: 1em;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Опис робіт *</label>
+                <textarea name="description" required rows="3" placeholder="Наприклад: Заміна масла та фільтрів"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; font-size: 1em; resize: vertical;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Вартість (грн) *</label>
+                <input type="number" name="cost" required min="0" step="0.01" placeholder="0.00"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: #0d0d0d; color: white; font-size: 1em;">
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <button type="submit" class="btn-primary" style="flex: 1; padding: 15px;">
+                    💾 Зберегти запис
+                </button>
+                <a href="{{ url_for('manage_maintenance') }}" class="btn-secondary"
+                    style="flex: 1; padding: 15px; text-align: center;">
+                    Скасувати
+                </a>
+            </div>
+
+        </form>
+    </div>
+</section>
+{% endblock %}
