@@ -21,15 +21,13 @@
         {% endif %}
         {% endwith %}
 
-        <!-- Summary -->
-        <div
-            style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid var(--glass-border);">
+        <div style="background: #222; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #333;">
             <div style="display: flex; align-items: center; gap: 20px;">
                 <img src="{{ car.image_url }}"
                     style="width: 100px; height: 70px; object-fit: cover; border-radius: 5px;">
                 <div>
                     <h4>{{ car.brand }} {{ car.model }}</h4>
-                    <p style="color: var(--primary-color);">${{ car.price_per_day }} / день</p>
+                    <p style="color: #D4AF37;">${{ car.price_per_day }} / день</p>
                 </div>
             </div>
         </div>
@@ -42,8 +40,7 @@
             </div>
             <div class="form-row">
                 <label>Телефон</label>
-                <input type="tel" name="phone" required placeholder="+380 99 123 45 67" pattern="\+?[\d\s-]{10,15}"
-                    title="Format: +380991234567 or similar">
+                <input type="tel" name="phone" required placeholder="+380 99 123 45 67">
             </div>
 
             <h3 style="margin-bottom: 20px; margin-top: 30px;">Деталі оренди</h3>
@@ -72,40 +69,37 @@
                 <div
                     style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;">
                     <span>Всього до сплати (орієнтовно):</span>
-                    <span id="total-price" style="color: var(--primary-color);">$0</span>
+                    <span id="total-price" style="color: #D4AF37;">$0</span>
                 </div>
-                <button type="submit" class="btn-primary btn-block">Підтвердити Бронювання</button>
+                <button type="submit" class="btn-primary btn-block" style="width: 100%;">Підтвердити Бронювання</button>
             </div>
         </form>
     </div>
-
-
-
 </section>
 
 <script>
-    // Simple JS to calculate price preview
-    const pricePerDay = {{ car.price_per_day }};
-    const startInput = document.getElementById('start_date');
-    const endInput = document.getElementById('end_date');
-    const totalSpan = document.getElementById('total-price');
+    var pricePerDay = {{ car.price_per_day }};
+    var startInput = document.getElementById('start_date');
+    var endInput = document.getElementById('end_date');
+    var totalSpan = document.getElementById('total-price');
 
     function updatePrice() {
         if (startInput.value && endInput.value) {
-            const start = new Date(startInput.value);
-            const end = new Date(endInput.value);
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            var start = new Date(startInput.value);
+            var end = new Date(endInput.value);
+
+            var diffTime = end.getTime() - start.getTime();
+            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             if (diffDays > 0) {
                 totalSpan.innerText = '$' + (diffDays * pricePerDay);
             } else {
-                totalSpan.innerText = '$' + pricePerDay; // Minimum 1 day
+                totalSpan.innerText = '$' + pricePerDay;
             }
         }
     }
 
-    startInput.addEventListener('change', updatePrice);
-    endInput.addEventListener('change', updatePrice);
+    startInput.onchange = updatePrice;
+    endInput.onchange = updatePrice;
 </script>
 {% endblock %}

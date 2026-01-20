@@ -11,7 +11,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), default='user') # 'admin', 'manager', 'user' (ролі користувачів)
+    role = db.Column(db.String(20), default='user')
     is_blocked = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
@@ -38,14 +38,14 @@ class Car(db.Model):
     model = db.Column(db.String(50), nullable=False)
     year = db.Column(db.Integer, nullable=False)
     price_per_day = db.Column(db.Integer, nullable=False)
-    transmission = db.Column(db.String(20), nullable=False) # 'Автомат' (Automatic), 'Механіка' (Manual)
-    fuel_type = db.Column(db.String(20), nullable=False) # 'Бензин' (Petrol), 'Дизель' (Diesel), 'Електро' (Electric)
+    transmission = db.Column(db.String(20), nullable=False)
+    fuel_type = db.Column(db.String(20), nullable=False)
     seats = db.Column(db.Integer, nullable=False)
-    image_url = db.Column(db.String(200), default='https://placehold.co/600x400/1a1a1a/gold?text=Car+Image') # Заглушка зображення
+    image_url = db.Column(db.String(200), default='https://placehold.co/600x400/1a1a1a/gold?text=Car+Image')
     is_available = db.Column(db.Boolean, default=True)
     description = db.Column(db.Text)
-    car_class = db.Column(db.String(50), default='Economy')  # Економ, Бізнес, Преміум, Позашляховик (SUV)
-    status = db.Column(db.String(20), default='Available')   # Вільна (Available), Заброньована (Booked), Обслуговування (Maintenance)
+    car_class = db.Column(db.String(50), default='Economy')
+    status = db.Column(db.String(20), default='Available')
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=True) 
     
     location = db.relationship('Location', backref='cars')
@@ -60,7 +60,7 @@ class Booking(db.Model):
     total_price = db.Column(db.Float, nullable=False)
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
-    status = db.Column(db.String(20), default='New') # Нове (New), Підтверджено (Confirmed), Скасовано (Canceled)
+    status = db.Column(db.String(20), default='New')
 
     user = db.relationship('User', backref='bookings')
     car = db.relationship('Car', backref='bookings')

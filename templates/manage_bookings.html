@@ -6,7 +6,7 @@
 <section>
     <div class="section-title">
         <h2>Керування Замовленнями</h2>
-        <p>Менеджер панель</p>
+        <p>Панель для менеджерів</p>
     </div>
 
     <div style="max-width: 1200px; margin: 0 auto;">
@@ -22,124 +22,84 @@
         {% endif %}
         {% endwith %}
 
-        <!-- Active Rentals Summary -->
         <div
-            style="background: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid var(--primary-color);">
-            <h3 style="color: var(--primary-color); margin-bottom: 15px;"><i class="fas fa-car-side"></i> Зараз в оренді
-            </h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+            style="background: #1a1a1a; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #D4AF37;">
+            <h3 style="color: #D4AF37; margin-bottom: 15px;"><i class="fas fa-car-side"></i> Активні поїздки (зараз в
+                дорозі)</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px;">
                 {% set active_count = namespace(value=0) %}
                 {% for booking in bookings %}
                 {% if booking.status == 'Confirmed' and booking.start_date <= today and booking.end_date>= today %}
                     {% set active_count.value = active_count.value + 1 %}
                     <div
-                        style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                        style="background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333; width: 280px;">
                         <div style="font-weight: bold; margin-bottom: 5px; color:white;">{{ booking.car.brand }} {{
                             booking.car.model }}</div>
-                        <div
-                            style="display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px; color: var(--text-muted);">
-                            <span><i class="fas fa-user"></i> {{ booking.customer_name }}</span>
-                            <span><i class="fas fa-phone"></i> {{ booking.customer_phone }}</span>
-                        </div>
-                        <div
-                            style="display: flex; justify-content: space-between; font-size: 0.9em; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
-                            <span style="color: #ff9800;"><i class="fas fa-map-marker-alt"></i> {{
-                                booking.car.location.city
-                                if booking.car.location else 'Не вказано' }}</span>
-                            <span style="color:white;">{{ booking.end_date.strftime('%d.%m') }} (кінець)</span>
+                        <div style="font-size: 14px; color: #a0a0a0;">
+                            <span>Клієнт: {{ booking.customer_name }}</span><br>
+                            <span>Тел: {{ booking.customer_phone }}</span>
                         </div>
                     </div>
                     {% endif %}
                     {% endfor %}
                     {% if active_count.value == 0 %}
-                    <p style="color: var(--text-muted);">Немає активних поїздок на даний момент.</p>
+                    <p style="color: #a0a0a0;">Поки ніхто не катається.</p>
                     {% endif %}
             </div>
         </div>
 
-        <!-- Filter Status (Optional) -->
         <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-            <a href="{{ url_for('manage_bookings') }}" class="btn-outline" style="padding: 5px 15px;">Всі</a>
+            <a href="{{ url_for('manage_bookings') }}" class="btn-outline"
+                style="padding: 5px 15px; font-size: 14px;">Всі замовлення</a>
             <a href="{{ url_for('manage_bookings', status='New') }}" class="btn-outline"
-                style="padding: 5px 15px;">Нові</a>
-            <a href="{{ url_for('manage_bookings', status='Confirmed') }}" class="btn-outline"
-                style="padding: 5px 15px;">Підтверджені</a>
+                style="padding: 5px 15px; font-size: 14px;">Тільки нові</a>
         </div>
 
         <div style="overflow-x: auto;">
-            <table
-                style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; background: #1a1a1a;">
                 <thead>
-                    <tr style="background: rgba(255,255,255,0.05); text-align: left;">
-                        <th style="padding: 15px;">ID</th>
-                        <th style="padding: 15px;">Клієнт</th>
-                        <th style="padding: 15px;">Авто</th>
-                        <th style="padding: 15px;">Місце</th>
-                        <th style="padding: 15px;">Дати</th>
-                        <th style="padding: 15px;">Сума</th>
-                        <th style="padding: 15px;">Статус</th>
-                        <th style="padding: 15px;">Дії</th>
+                    <tr style="background: #222; text-align: left;">
+                        <th style="padding: 12px; border: 1px solid #333;">№</th>
+                        <th style="padding: 12px; border: 1px solid #333;">Клієнт</th>
+                        <th style="padding: 12px; border: 1px solid #333;">Автомобіль</th>
+                        <th style="padding: 12px; border: 1px solid #333;">Дати</th>
+                        <th style="padding: 12px; border: 1px solid #333;">Сума</th>
+                        <th style="padding: 12px; border: 1px solid #333;">Статус</th>
+                        <th style="padding: 12px; border: 1px solid #333;">Дії</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for booking in bookings %}
-                    <tr style="border-bottom: 1px solid var(--glass-border);">
-                        <td style="padding: 15px;">#{{ booking.id }}</td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: bold;">{{ booking.customer_name }}</div>
-                            <div style="font-size: 0.9em; color: var(--text-muted);">{{ booking.customer_phone }}</div>
+                    <tr style="border-bottom: 1px solid #333;">
+                        <td style="padding: 12px;">{{ booking.id }}</td>
+                        <td style="padding: 12px;">
+                            <b>{{ booking.customer_name }}</b><br>
+                            <span style="font-size: 12px; color: #a0a0a0;">{{ booking.customer_phone }}</span>
                         </td>
-                        <td style="padding: 15px;">
-                            {{ booking.car.brand }} {{ booking.car.model }}
-                            <div style="font-size: 0.8em; color: var(--text-muted);">{{ booking.car.car_class }}</div>
+                        <td style="padding: 12px;">{{ booking.car.brand }} {{ booking.car.model }}</td>
+                        <td style="padding: 12px; font-size: 14px;">
+                            {{ booking.start_date }} - {{ booking.end_date }}
                         </td>
-                        <td style="padding: 15px;">
-                            {% if booking.car.location %}
-                            {{ booking.car.location.city }}
-                            <div style="font-size: 0.8em; color: var(--text-muted);">{{ booking.car.location.address }}
-                            </div>
-                            {% else %}
-                            <span style="color: var(--text-muted);">Не вказано</span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 15px;">
-                            {{ booking.start_date }} <br>
-                            <i class="fas fa-arrow-down" style="font-size:0.8em; margin: 2px 0;"></i> <br>
-                            {{ booking.end_date }}
-                        </td>
-                        <td style="padding: 15px;">${{ booking.total_price }}</td>
-                        <td style="padding: 15px;">
-                            <span style="
-                                padding: 5px 10px; border-radius: 5px; font-weight: bold;
-                                background: {{ '#FF9800' if booking.status == 'New' else ('#4CAF50' if booking.status == 'Confirmed' else ('#2196F3' if booking.status == 'Completed' else '#f44336')) }};
-                                color: white;
-                            ">
+                        <td style="padding: 12px;">${{ booking.total_price }}</td>
+                        <td style="padding: 12px;">
+                            <span
+                                style="padding: 3px 8px; border-radius: 3px; font-size: 12px; color: white; background: {{ '#FF9800' if booking.status == 'New' else ('#4CAF50' if booking.status == 'Confirmed' else ('#2196F3' if booking.status == 'Completed' else '#f44336')) }};">
                                 {{ booking.status }}
                             </span>
                         </td>
-                        <td style="padding: 15px;">
+                        <td style="padding: 12px;">
                             {% if booking.status == 'New' %}
-                            {% if current_user.role != 'admin' %}
                             <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='confirm') }}"
-                                class="btn-primary"
-                                style="padding: 5px 10px; font-size: 0.8em; margin-bottom: 5px; display:inline-block;">Підтвердити</a>
-                            {% endif %}
+                                style="color: #4CAF50;">Підтвердити</a>
                             <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='cancel') }}"
-                                style="color: #f44336; font-size: 0.9em; margin-left:10px;">Скасувати</a>
+                                style="color: #f44336; margin-left: 10px;">Скасувати</a>
                             {% elif booking.status == 'Confirmed' %}
                             <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='complete') }}"
-                                style="color: #2196F3; margin-right: 10px;">Завершити</a>
-                            <a href="{{ url_for('update_booking_status', booking_id=booking.id, action='cancel') }}"
-                                style="color: #f44336;">Скасувати</a>
+                                style="color: #2196F3;">Завершити</a>
                             {% else %}
-                            <span style="color: var(--text-muted);">-</span>
+                            <span>---</span>
                             {% endif %}
                         </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">Замовлень
-                            не знайдено.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

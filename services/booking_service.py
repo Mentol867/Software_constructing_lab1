@@ -24,7 +24,6 @@ def process_booking(user_id, car, form_data):
         if end_date <= start_date:
             return False, 'Дата закінчення повинна бути після дати початку.'
 
-        # Перевірка накладання дат
         overlapping_bookings = Booking.query.filter(
             Booking.car_id == car.id,
             Booking.status.notin_(['Canceled', 'Completed']),
@@ -33,7 +32,7 @@ def process_booking(user_id, car, form_data):
         ).first()
         
         if overlapping_bookings:
-                return False, 'Автомобіль уже заброньовано на ці дати.'
+            return False, 'Автомобіль уже заброньовано на ці дати.'
 
         days = (end_date - start_date).days
         total_price = days * car.price_per_day

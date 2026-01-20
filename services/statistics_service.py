@@ -5,7 +5,6 @@ from flask import flash
 from models import db, Car, Location, Booking, Maintenance
 
 def get_statistics_context(request_args):
-    # 1. Отримання локацій та вільних місць (Складний SQL-запит)
     locations_query = text("""
         SELECT 
             l.id, 
@@ -41,14 +40,12 @@ def get_statistics_context(request_args):
             'free_spots': free_spots
         })
 
-    # 2. Отримання параметрів фільтрації
     filter_loc_id = request_args.get('location_id')
     filter_period = request_args.get('period', 'month')
     filter_class = request_args.get('car_class')
     filter_metric = request_args.get('metric', 'income')
     filter_car_id = request_args.get('maintenance_car_id')
 
-    # Розрахунок діапазону дат
     end_date = datetime.now().date()
     start_date = end_date - timedelta(days=30)
     aggregation_type = 'day'
@@ -72,7 +69,6 @@ def get_statistics_context(request_args):
         start_date = end_date - timedelta(days=365)
         aggregation_type = 'month'
 
-    # 3. Графік доходів/бронювань
     base_sql = """
         SELECT b.start_date, b.total_price, b.id
         FROM bookings b
@@ -135,19 +131,15 @@ def get_statistics_context(request_args):
     except Exception as e:
         print(f"Помилка побудови графіка: {e}")
 
-    # 4. Статистика обслуговування (Maintenance)
     maintenance_plot_url = None
     maintenance_summary_url = None
     selected_maintenance_car = None
     
-    # Отримання всіх авто для випадаючого списку
     all_cars = Car.query.all()
     
-    # Підсумок: Загальні витрати на обслуговування по кожному авто
     try:
         from plotting import generate_maintenance_summary_plot, generate_maintenance_plot
         
-        # Отримання списку авто з записами про обслуговування
         cars_with_maintenance = db.session.execute(text("""
             SELECT c.id, c.brand, c.model, c.year, COALESCE(SUM(m.cost), 0) as total_cost
             FROM cars c
@@ -163,7 +155,6 @@ def get_statistics_context(request_args):
             total_costs = [row[4] for row in cars_with_maintenance]
             maintenance_summary_url = generate_maintenance_summary_plot(car_names, total_costs)
         
-        # Графік обслуговування для конкретного авто
         if filter_car_id and filter_car_id != 'all':
             selected_maintenance_car = Car.query.get(int(filter_car_id))
             if selected_maintenance_car:
@@ -177,10 +168,8 @@ def get_statistics_context(request_args):
     except Exception as e:
         print(f"Помилка побудови графіка обслуговування: {e}")
 
-    # Отримання всіх локацій для випадаючого списку фільтра
     all_locations = Location.query.all()
     
-    # Отримання всіх класів автомобілів
     car_classes_rows = db.session.execute(text("SELECT DISTINCT car_class FROM cars")).fetchall()
     all_car_classes = [row[0] for row in car_classes_rows]
 
@@ -193,7 +182,6 @@ def get_statistics_context(request_args):
         'current_class': filter_class,
         'current_metric': filter_metric,
         'car_classes': all_car_classes,
-        # Обслуговування (Maintenance)
         'maintenance_plot_url': maintenance_plot_url,
         'maintenance_summary_url': maintenance_summary_url,
         'all_cars': all_cars,

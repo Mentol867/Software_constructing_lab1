@@ -11,7 +11,6 @@
 
     <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
 
-        <!-- Filters and Actions -->
         <div
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
             <div style="display: flex; gap: 15px; align-items: center;">
@@ -35,7 +34,6 @@
         </div>
 
         {% if selected_car %}
-        <!-- Car Summary -->
         <div style="background: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
             <h3 style="margin-bottom: 15px;">{{ selected_car.brand }} {{ selected_car.model }} ({{ selected_car.year }})
             </h3>
@@ -55,7 +53,6 @@
         </div>
         {% endif %}
 
-        <!-- Records Table -->
         <div style="overflow-x: auto;">
             <table
                 style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
@@ -85,7 +82,7 @@
                             <a href="{{ url_for('delete_maintenance', record_id=record.id) }}"
                                 onclick="return confirm('Видалити цей запис?')"
                                 style="color: #f44336; text-decoration: none;">
-                                🗑️ Видалити
+                                Видалити
                             </a>
                             {% endif %}
                         </td>
@@ -101,10 +98,9 @@
             </table>
         </div>
 
-        <!-- Link to Statistics -->
         <div style="margin-top: 30px; text-align: center;">
             <a href="{{ url_for('statistics') }}" class="btn-secondary" style="padding: 12px 25px;">
-                📊 Переглянути статистику обслуговування
+                Переглянути статистику обслуговування
             </a>
         </div>
 

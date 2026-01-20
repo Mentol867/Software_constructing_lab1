@@ -32,12 +32,10 @@ def create_car(form_data, files, upload_folder):
         car_class = form_data['car_class']
         status = form_data['status']
         
-        # Обробка завантаження зображення
         image_url = None
         if 'image_file' in files:
             image_url = handle_image_upload(files['image_file'], upload_folder)
         
-        # Використати URL, якщо файл не було завантажено
         if not image_url and form_data.get('image_url'):
             image_url = form_data['image_url']
         
@@ -66,13 +64,11 @@ def update_car(car, form_data, files, upload_folder):
         car.car_class = form_data['car_class']
         car.status = form_data['status']
         
-        # Обробка завантаження зображення
         if 'image_file' in files:
             new_image_url = handle_image_upload(files['image_file'], upload_folder)
             if new_image_url:
                 car.image_url = new_image_url
         
-        # Оновлення image_url з текстового поля, якщо надано (і файл не був завантажений цього разу, або для перезапису)
         if form_data.get('image_url') and form_data['image_url'] != car.image_url:
                 car.image_url = form_data['image_url']
         

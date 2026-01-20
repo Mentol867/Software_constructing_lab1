@@ -4,9 +4,8 @@
 
 {% block content %}
 
-<!-- Hero Section -->
 <header class="hero">
-    <h1>Оренда Преміум Авто<br><span>Без Обмежень</span></h1>
+    <h1>Оренда Преміум Авто<br><span style="color: #D4AF37;">Без Обмежень</span></h1>
     <p>Відкрийте для себе свободу пересування з нашим ексклюзивним автопарком. Прозорі умови, ідеальний стан авто та
         підтримка 24/7.</p>
 
@@ -33,7 +32,6 @@
     </div>
 </header>
 
-<!-- Popular Cars -->
 <section style="background-color: #121212;">
     <div class="section-title">
         <h2>Популярні Авто</h2>
@@ -49,12 +47,14 @@
                     <h3>{{ car.brand }} {{ car.model }}</h3>
                     <span class="price">${{ car.price_per_day }}/день</span>
                 </div>
-                <div class="car-specs">
+                <div class="car-specs"
+                    style="display: flex; gap: 10px; color: #a0a0a0; font-size: 14px; margin-bottom: 15px;">
                     <span><i class="fas fa-gas-pump"></i> {{ car.fuel_type }}</span>
                     <span><i class="fas fa-cog"></i> {{ car.transmission }}</span>
                     <span><i class="fas fa-user"></i> {{ car.seats }}</span>
                 </div>
-                <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn-outline btn-block">Детальніше</a>
+                <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn-outline btn-block"
+                    style="text-align: center; display: block;">Детальніше</a>
             </div>
         </div>
         {% endfor %}
@@ -65,25 +65,28 @@
     </div>
 </section>
 
-<!-- How it works -->
 <section>
     <div class="section-title">
         <h2>Як це працює</h2>
         <p>3 прості кроки до вашої поїздки</p>
     </div>
-    <div class="features-grid">
-        <div class="feature-card">
-            <i class="fas fa-car feature-icon"></i>
+    <div class="features-grid" style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 30px;">
+        <div class="feature-card"
+            style="background: #1a1a1a; padding: 30px; border-radius: 10px; width: 300px; text-align: center;">
+            <i class="fas fa-car feature-icon" style="font-size: 40px; color: #D4AF37; margin-bottom: 20px;"></i>
             <h3>Оберіть авто</h3>
             <p>Перегляньте наш каталог та оберіть ідеальне авто для ваших потреб.</p>
         </div>
-        <div class="feature-card">
-            <i class="fas fa-calendar-check feature-icon"></i>
+        <div class="feature-card"
+            style="background: #1a1a1a; padding: 30px; border-radius: 10px; width: 300px; text-align: center;">
+            <i class="fas fa-calendar-check feature-icon"
+                style="font-size: 40px; color: #D4AF37; margin-bottom: 20px;"></i>
             <h3>Забронюйте</h3>
             <p>Швидке оформлення онлайн без зайвих паперів та черг.</p>
         </div>
-        <div class="feature-card">
-            <i class="fas fa-key feature-icon"></i>
+        <div class="feature-card"
+            style="background: #1a1a1a; padding: 30px; border-radius: 10px; width: 300px; text-align: center;">
+            <i class="fas fa-key feature-icon" style="font-size: 40px; color: #D4AF37; margin-bottom: 20px;"></i>
             <h3>Поїхали</h3>
             <p>Отримайте ключі у зручному місці та насолоджуйтесь дорогою.</p>
         </div>

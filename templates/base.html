@@ -12,9 +12,8 @@
 
 <body>
 
-    <!-- Navigation -->
     <nav>
-        <div class="logo">LUX<span style="color:var(--primary-color)">DRIVE</span></div>
+        <div class="logo">LUX<span style="color:#D4AF37">DRIVE</span></div>
         <div class="nav-links">
             <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' else '' }}">Головна</a>
             <a href="{{ url_for('cars') }}" class="{{ 'active' if request.endpoint == 'cars' else '' }}">Автопарк</a>
@@ -38,8 +37,6 @@
                 style="color: #00bcd4;">Статистика</a>
             {% endif %}
 
-
-
             {% if current_user.is_authenticated %}
             <a href="{{ url_for('dashboard') }}"
                 class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Кабінет</a>
@@ -58,7 +55,6 @@
 
     {% block content %}{% endblock %}
 
-    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-col">

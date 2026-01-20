@@ -5,17 +5,12 @@ import base64
 from io import BytesIO
 
 def generate_income_plot(days, income, period):
-    """
-    Генерує стовпчикову діаграму для статистики доходів/бронювань.
-    Повертає рядок зображення, закодований у base64, або None у разі помилки.
-    """
     try:
         fig, ax = plt.subplots(figsize=(10, 5))
         
         if days:
             bars = ax.bar(days, income, color='#ff9800', edgecolor='#e68900', linewidth=1.2)
             
-            # Додавання міток значень над стовпчиками
             for bar, val in zip(bars, income):
                 height = bar.get_height()
                 ax.annotate(f'{val:.0f}',
@@ -34,7 +29,6 @@ def generate_income_plot(days, income, period):
         
         plt.tight_layout()
         
-        # Збереження в буфер
         buf = BytesIO()
         plt.savefig(buf, format='png', dpi=100)
         buf.seek(0)
@@ -46,22 +40,15 @@ def generate_income_plot(days, income, period):
         return None
 
 def generate_maintenance_plot(dates, costs, car_name):
-    """
-    Генерує лінійний графік витрат на обслуговування з часом для конкретного авто.
-    Повертає рядок зображення, закодований у base64, або None у разі помилки.
-    """
     try:
         fig, ax = plt.subplots(figsize=(10, 5))
         
         if dates and costs:
-            # Лінійний графік з маркерами
             ax.plot(dates, costs, marker='o', linestyle='-', color='#2196F3', 
                     linewidth=2, markersize=8, markerfacecolor='#1976D2', markeredgecolor='white')
             
-            # Заповнення області під лінією
             ax.fill_between(dates, costs, alpha=0.2, color='#2196F3')
             
-            # Додавання міток значень
             for i, (x, y) in enumerate(zip(dates, costs)):
                 ax.annotate(f'{y:.0f} грн',
                             xy=(x, y),
@@ -70,7 +57,6 @@ def generate_maintenance_plot(dates, costs, car_name):
                             ha='center', va='bottom', fontsize=9, 
                             bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#2196F3', alpha=0.8))
             
-            # Розрахунок та відображення загальної суми
             total = sum(costs)
             ax.axhline(y=sum(costs)/len(costs), color='#f44336', linestyle='--', 
                        alpha=0.7, label=f'Середнє: {total/len(costs):.0f} грн')
@@ -86,7 +72,6 @@ def generate_maintenance_plot(dates, costs, car_name):
         
         plt.tight_layout()
         
-        # Збереження в буфер
         buf = BytesIO()
         plt.savefig(buf, format='png', dpi=100)
         buf.seek(0)
@@ -98,9 +83,6 @@ def generate_maintenance_plot(dates, costs, car_name):
         return None
 
 def generate_maintenance_summary_plot(car_names, total_costs):
-    """
-    Генерує горизонтальну стовпчикову діаграму, що показує загальні витрати на обслуговування по кожному авто.
-    """
     try:
         fig, ax = plt.subplots(figsize=(10, max(5, len(car_names) * 0.5)))
         
@@ -108,7 +90,6 @@ def generate_maintenance_summary_plot(car_names, total_costs):
             colors = plt.cm.Blues([0.4 + 0.4 * i / len(car_names) for i in range(len(car_names))])
             bars = ax.barh(car_names, total_costs, color=colors, edgecolor='#1565C0')
             
-            # Додавання міток значень
             for bar, val in zip(bars, total_costs):
                 ax.annotate(f'{val:.0f} грн',
                             xy=(val, bar.get_y() + bar.get_height() / 2),

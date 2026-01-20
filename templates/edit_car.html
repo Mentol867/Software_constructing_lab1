@@ -90,7 +90,6 @@
             <div class="form-row">
                 <label>Зображення авто</label>
 
-                <!-- Drag & Drop Zone -->
                 <div class="drop-zone" id="drop-zone">
                     <p>📸 Перетягніть фото сюди або клікніть для вибору</p>
                     <input type="file" name="image_file" id="image_file" accept="image/*">
@@ -110,7 +109,6 @@
                 const preview = document.getElementById('preview');
                 const urlInput = document.getElementById('image_url');
 
-                // Drag & Drop events
                 dropZone.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     dropZone.classList.add('dragover');

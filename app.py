@@ -9,9 +9,9 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:137948625awD@localhost:5432/flask_db?client_encoding=utf8'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'super_secret_key_for_car_rental' # Для сесій та flash-повідомлень
+app.secret_key = 'super_secret_key_for_car_rental'
 
-from models import db, User, Car, Location, Booking, Review, Maintenance
+from models import db, User, Car, Booking, Review, Maintenance
 
 db.init_app(app)
 login_manager = LoginManager(app)
@@ -20,8 +20,6 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-# --- ДОПОМІЖНІ ФУНКЦІЇ ---
 
 def role_required(roles):
     def decorator(f):
@@ -33,8 +31,6 @@ def role_required(roles):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
-
-# --- МАРШРУТИ (ROUTES) ---
 
 @app.route('/')
 def index():
@@ -61,7 +57,6 @@ def cars():
         
     all_cars = query.all()
     
-    # Перевірка поточної доступності динамічно
     today = datetime.now().date()
     for car in all_cars:
         active_booking = Booking.query.filter(
@@ -78,7 +73,6 @@ def cars():
 def car_details(car_id):
     car = Car.query.get_or_404(car_id)
     
-    # Отримання відгуків
     reviews = Review.query.filter_by(car_id=car.id).order_by(Review.created_at.desc()).all()
     avg_rating = 0
     if reviews:
@@ -109,8 +103,6 @@ def booking(car_id):
 @app.route('/success')
 def success():
     return render_template('success.html')
-
-# --- МАРШРУТИ АВТОРИЗАЦІЇ ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -177,8 +169,6 @@ def add_review(booking_id):
         
     return redirect(url_for('dashboard'))
 
-# --- МАРШРУТИ ДЛЯ МЕНЕДЖЕРІВ / АДМІНІСТРАТОРІВ ---
-
 @app.route('/manage/cars')
 @login_required
 @role_required(['admin', 'manager'])
@@ -187,7 +177,6 @@ def manage_cars():
     return render_template('manage_cars.html', cars=cars)
 
 app.config['UPLOAD_FOLDER'] = 'static/uploads/cars'
-# Переконатися, що директорія для завантаження існує
 import os
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
@@ -301,8 +290,6 @@ def statistics():
     context = get_statistics_context(request.args)
     return render_template('statistics.html', **context)
 
-# --- МАРШРУТИ ОБСЛУГОВУВАННЯ (MAINTENANCE) ---
-
 @app.route('/manage/maintenance')
 @login_required
 @role_required(['admin', 'manager'])
@@ -361,7 +348,7 @@ def delete_maintenance(record_id):
 
 @app.route('/manage/car/delete/<int:car_id>')
 @login_required
-@role_required(['admin']) # Тільки адміністратор може видаляти
+@role_required(['admin'])
 def delete_car(car_id):
     car = Car.query.get_or_404(car_id)
     from services.car_service import delete_car
