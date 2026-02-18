@@ -8,7 +8,7 @@ class UserRole(Enum):
 class BookingStatus(Enum):
     NEW = 'New'
     CONFIRMED = 'Confirmed'
-    CANCELED = 'Canceled' # Spelling matches usage in booking_service.py
+    CANCELED = 'Canceled'
     COMPLETED = 'Completed'
 
 class CarStatus(Enum):
