@@ -1,11 +1,18 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, abort
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 import os
+
 from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+
+from models import db, User, Car, Booking, Review, Maintenance
+from services.auth_service import authenticate_user, register_user
+from services.booking_service import process_booking, update_booking_status
+from services.car_service import create_car, update_car, delete_car
+from services.ranking_service import calculate_popular_cars
+from services.review_service import create_review
+from services.statistics_service import get_statistics_context
 
 app = Flask(__name__)
 load_dotenv()
@@ -13,8 +20,6 @@ load_dotenv()
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv('SECRET_KEY')
-
-from models import db, User, Car, Booking, Review, Maintenance
 
 db.init_app(app)
 login_manager = LoginManager(app)
@@ -38,7 +43,7 @@ def role_required(roles):
 @app.route('/')
 def index():
     try:
-        from services.ranking_service import calculate_popular_cars
+
         
         all_cars = Car.query.all()
         all_reviews = Review.query.all()
@@ -91,7 +96,7 @@ def booking(car_id):
             flash('Ви не авторизовані, логінуйтесь.', 'warning')
             return redirect(url_for('login', next=request.url))
 
-        from services.booking_service import process_booking
+
         success, result = process_booking(current_user.id, car, request.form)
         
         if success:
@@ -113,7 +118,7 @@ def login():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        from services.auth_service import authenticate_user
+
         success, message, user = authenticate_user(request.form['email'], request.form['password'])
         
         if success:
@@ -132,7 +137,7 @@ def register():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        from services.auth_service import register_user
+
         success, message, user = register_user(request.form)
         
         if success:
@@ -162,7 +167,7 @@ def dashboard():
 @login_required
 def add_review(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    from services.review_service import create_review
+
     success, message = create_review(current_user.id, booking, request.form)
     
     if success:
@@ -180,7 +185,6 @@ def manage_cars():
     return render_template('manage_cars.html', cars=cars)
 
 app.config['UPLOAD_FOLDER'] = 'static/uploads/cars'
-import os
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -189,7 +193,7 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 @role_required(['admin', 'manager'])
 def add_car():
     if request.method == 'POST':
-        from services.car_service import create_car
+
         success, result = create_car(request.form, request.files, app.config['UPLOAD_FOLDER'])
         
         if success:
@@ -206,7 +210,7 @@ def add_car():
 def edit_car(car_id):
     car = Car.query.get_or_404(car_id)
     if request.method == 'POST':
-        from services.car_service import update_car
+
         success, result = update_car(car, request.form, request.files, app.config['UPLOAD_FOLDER'])
         
         if success:
@@ -234,7 +238,7 @@ def manage_bookings():
 @role_required(['manager'])
 def update_booking_status(booking_id, action):
     booking = Booking.query.get_or_404(booking_id)
-    from services.booking_service import update_booking_status
+
     success, message, category = update_booking_status(booking, action)
     flash(message, category)
     
@@ -289,7 +293,7 @@ def toggle_user_block(user_id, action):
 @login_required
 @role_required(['admin'])
 def statistics():
-    from services.statistics_service import get_statistics_context
+
     context = get_statistics_context(request.args)
     return render_template('statistics.html', **context)
 
@@ -354,7 +358,7 @@ def delete_maintenance(record_id):
 @role_required(['admin'])
 def delete_car(car_id):
     car = Car.query.get_or_404(car_id)
-    from services.car_service import delete_car
+
     success, message = delete_car(car)
     flash('Автомобіль успішно видалено!', 'success' if success else 'danger')
     return redirect(url_for('manage_cars'))
