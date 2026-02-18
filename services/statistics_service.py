@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from flask import flash
 from models import db, Car, Location, Booking, Maintenance
+from enums import BookingStatus
 
 def get_statistics_context(request_args):
-    locations_query = text("""
+    locations_query = text(f"""
         SELECT 
             l.id, 
             l.city, 
@@ -17,7 +18,7 @@ def get_statistics_context(request_args):
                 FROM bookings b 
                 JOIN cars c ON b.car_id = c.id
                 WHERE c.location_id = l.id 
-                AND b.status IN ('Confirmed', 'New') 
+                AND b.status IN ('{BookingStatus.CONFIRMED.value}', '{BookingStatus.NEW.value}') 
                 AND CURRENT_DATE BETWEEN b.start_date AND b.end_date
             ) as cars_on_trip
         FROM locations l
@@ -69,11 +70,11 @@ def get_statistics_context(request_args):
         start_date = end_date - timedelta(days=365)
         aggregation_type = 'month'
 
-    base_sql = """
+    base_sql = f"""
         SELECT b.start_date, b.total_price, b.id
         FROM bookings b
         JOIN cars c ON b.car_id = c.id
-        WHERE b.status IN ('Confirmed', 'Completed')
+        WHERE b.status IN ('{BookingStatus.CONFIRMED.value}', '{BookingStatus.COMPLETED.value}')
         AND b.start_date >= :start_date
         AND b.start_date <= :end_date
     """
