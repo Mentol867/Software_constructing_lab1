@@ -13,6 +13,7 @@ from services.car_service import create_car, update_car, delete_car
 from services.ranking_service import calculate_popular_cars
 from services.review_service import create_review
 from services.statistics_service import get_statistics_context
+from enums import UserRole, BookingStatus, CarStatus
 
 app = Flask(__name__)
 load_dotenv()
@@ -58,7 +59,7 @@ def index():
 @app.route('/cars')
 def cars():
     class_filter = request.args.get('class')
-    query = Car.query.filter(Car.status != 'Maintenance') 
+    query = Car.query.filter(Car.status != CarStatus.MAINTENANCE.value) 
     
     if class_filter and class_filter != 'Всі':
         query = query.filter_by(car_class=class_filter)
@@ -69,7 +70,7 @@ def cars():
     for car in all_cars:
         active_booking = Booking.query.filter(
             Booking.car_id == car.id,
-            Booking.status == 'Confirmed',
+            Booking.status == BookingStatus.CONFIRMED.value,
             Booking.start_date <= today,
             Booking.end_date >= today
         ).first()
@@ -173,13 +174,13 @@ def add_review(booking_id):
     if success:
         flash(message, 'Успіх')
     else:
-        flash(message, 'Помилка')
+        flash(message, 'Помимилка')
         
     return redirect(url_for('dashboard'))
 
 @app.route('/manage/cars')
 @login_required
-@role_required(['admin', 'manager'])
+@role_required([UserRole.ADMIN.value, UserRole.MANAGER.value])
 def manage_cars():
     cars = Car.query.all()
     return render_template('manage_cars.html', cars=cars)
@@ -190,7 +191,7 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 @app.route('/manage/car/add', methods=['GET', 'POST'])
 @login_required
-@role_required(['admin', 'manager'])
+@role_required([UserRole.ADMIN.value, UserRole.MANAGER.value])
 def add_car():
     if request.method == 'POST':
 
@@ -206,7 +207,7 @@ def add_car():
 
 @app.route('/manage/car/edit/<int:car_id>', methods=['GET', 'POST'])
 @login_required
-@role_required(['admin', 'manager'])
+@role_required([UserRole.ADMIN.value, UserRole.MANAGER.value])
 def edit_car(car_id):
     car = Car.query.get_or_404(car_id)
     if request.method == 'POST':
@@ -223,7 +224,7 @@ def edit_car(car_id):
 
 @app.route('/manage/bookings')
 @login_required
-@role_required(['manager'])
+@role_required([UserRole.MANAGER.value])
 def manage_bookings():
     filter_status = request.args.get('status')
     if filter_status:
@@ -235,7 +236,7 @@ def manage_bookings():
 
 @app.route('/manage/booking/update/<int:booking_id>/<action>')
 @login_required
-@role_required(['manager'])
+@role_required([UserRole.MANAGER.value])
 def update_booking_status(booking_id, action):
     booking = Booking.query.get_or_404(booking_id)
 
@@ -247,14 +248,14 @@ def update_booking_status(booking_id, action):
 
 @app.route('/manage/users')
 @login_required
-@role_required(['admin'])
+@role_required([UserRole.ADMIN.value])
 def manage_users():
     users = User.query.order_by(User.id).all()
     return render_template('manage_users.html', users=users)
 
 @app.route('/manage/user/<int:user_id>/role', methods=['POST'])
 @login_required
-@role_required(['admin'])
+@role_required([UserRole.ADMIN.value])
 def update_user_role(user_id):
     user = User.query.get_or_404(user_id)
     if user.id == current_user.id:
@@ -262,7 +263,7 @@ def update_user_role(user_id):
         return redirect(url_for('manage_users'))
         
     new_role = request.form.get('role')
-    if new_role in ['user', 'manager', 'admin']:
+    if new_role in [role.value for role in UserRole]:
         user.role = new_role
         db.session.commit()
         flash(f'Роль для {user.username} оновлено на {new_role}.', 'success')
@@ -272,7 +273,7 @@ def update_user_role(user_id):
 
 @app.route('/manage/user/<int:user_id>/block/<action>')
 @login_required
-@role_required(['admin'])
+@role_required([UserRole.ADMIN.value])
 def toggle_user_block(user_id, action):
     user = User.query.get_or_404(user_id)
     if user.id == current_user.id:
@@ -291,7 +292,7 @@ def toggle_user_block(user_id, action):
 
 @app.route('/manage/statistics')
 @login_required
-@role_required(['admin'])
+@role_required([UserRole.ADMIN.value])
 def statistics():
 
     context = get_statistics_context(request.args)
@@ -299,7 +300,7 @@ def statistics():
 
 @app.route('/manage/maintenance')
 @login_required
-@role_required(['admin', 'manager'])
+@role_required([UserRole.ADMIN.value, UserRole.MANAGER.value])
 def manage_maintenance():
     car_id = request.args.get('car_id')
     if car_id:
@@ -314,7 +315,7 @@ def manage_maintenance():
 
 @app.route('/manage/maintenance/add', methods=['GET', 'POST'])
 @login_required
-@role_required(['admin', 'manager'])
+@role_required([UserRole.ADMIN.value, UserRole.MANAGER.value])
 def add_maintenance():
     if request.method == 'POST':
         try:
@@ -344,7 +345,7 @@ def add_maintenance():
 
 @app.route('/manage/maintenance/delete/<int:record_id>')
 @login_required
-@role_required(['admin'])
+@role_required([UserRole.ADMIN.value])
 def delete_maintenance(record_id):
     record = Maintenance.query.get_or_404(record_id)
     car_id = record.car_id
@@ -355,7 +356,7 @@ def delete_maintenance(record_id):
 
 @app.route('/manage/car/delete/<int:car_id>')
 @login_required
-@role_required(['admin'])
+@role_required([UserRole.ADMIN.value])
 def delete_car(car_id):
     car = Car.query.get_or_404(car_id)
 

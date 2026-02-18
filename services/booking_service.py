@@ -1,6 +1,7 @@
 from datetime import datetime
 import re
 from models import db, Booking
+from enums import BookingStatus, CarStatus
 
 def validate_phone(phone):
     return bool(re.match(r'^\+?[\d\s-]{10,15}$', phone))
@@ -26,7 +27,7 @@ def process_booking(user_id, car, form_data):
 
         overlapping_bookings = Booking.query.filter(
             Booking.car_id == car.id,
-            Booking.status.notin_(['Canceled', 'Completed']),
+            Booking.status.notin_([BookingStatus.CANCELED.value, BookingStatus.COMPLETED.value]),
             Booking.end_date > start_date,
             Booking.start_date < end_date
         ).first()
@@ -60,17 +61,17 @@ def update_booking_status(booking, action):
     category = 'success'
     
     if action == 'confirm':
-        booking.status = 'Confirmed'
-        booking.car.status = 'Booked'
+        booking.status = BookingStatus.CONFIRMED.value
+        booking.car.status = CarStatus.BOOKED.value
         message = f'Бронювання #{booking.id} підтверджено.'
     elif action == 'cancel':
-        booking.status = 'Canceled'
-        booking.car.status = 'Available'
+        booking.status = BookingStatus.CANCELED.value
+        booking.car.status = CarStatus.AVAILABLE.value
         message = f'Бронювання #{booking.id} скасовано.'
         category = 'warning'
     elif action == 'complete':
-        booking.status = 'Completed'
-        booking.car.status = 'Available'
+        booking.status = BookingStatus.COMPLETED.value
+        booking.car.status = CarStatus.AVAILABLE.value
         message = f'Бронювання #{booking.id} позначено як завершене.'
     else:
         return False, 'Недійсна дія', 'danger'
