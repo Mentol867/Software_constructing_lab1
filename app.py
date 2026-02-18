@@ -4,12 +4,15 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from functools import wraps
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+load_dotenv()
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:137948625awD@localhost:5432/flask_db?client_encoding=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'super_secret_key_for_car_rental'
+app.secret_key = os.getenv('SECRET_KEY')
 
 from models import db, User, Car, Booking, Review, Maintenance
 
