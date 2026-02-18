@@ -8,6 +8,7 @@ class UserRole(Enum):
 class BookingStatus(Enum):
     NEW = 'New'
     CONFIRMED = 'Confirmed'
+    CANCELED = 'Canceled'
     COMPLETED = 'Completed'
 
 class CarStatus(Enum):
