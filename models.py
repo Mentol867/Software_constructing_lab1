@@ -3,6 +3,9 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
+from datetime import datetime
+from enums import UserRole, BookingStatus, CarStatus
+
 db = SQLAlchemy()
 
 class User(UserMixin, db.Model):
@@ -11,7 +14,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), default='user')
+    role = db.Column(db.String(20), default=UserRole.USER.value)
     is_blocked = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
@@ -45,7 +48,7 @@ class Car(db.Model):
     is_available = db.Column(db.Boolean, default=True)
     description = db.Column(db.Text)
     car_class = db.Column(db.String(50), default='Economy')
-    status = db.Column(db.String(20), default='Available')
+    status = db.Column(db.String(20), default=CarStatus.AVAILABLE.value)
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=True) 
     
     location = db.relationship('Location', backref='cars')
@@ -60,7 +63,7 @@ class Booking(db.Model):
     total_price = db.Column(db.Float, nullable=False)
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
-    status = db.Column(db.String(20), default='New')
+    status = db.Column(db.String(20), default=BookingStatus.NEW.value)
 
     user = db.relationship('User', backref='bookings')
     car = db.relationship('Car', backref='bookings')
